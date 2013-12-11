@@ -64,6 +64,13 @@
 -- of letters (the same key/value pairs).  A function is provided to
 -- convert an arbitrary key into table representation.<br />
 --
+-- <em>Some numbers:</em> Storing 435,000 German words with 5.4 million
+-- characters results in a trie with 1.2 million nodes consuming 77 MB
+-- of memory.  That is, in this example application, a single node in
+-- the trie uses ca. 69 bytes of memory.  Other than that, the
+-- implementation is fully functional.  <em>But you have been
+-- warned!</em><br />
+--
 -- This class is derived from class `cls_pdnm_oop`.
 --
 --
@@ -99,6 +106,8 @@ local M = cls_oop:new()
 local Tconcat = table.concat
 local Tinsert = table.insert
 local Tremove = table.remove
+local Ufind = unicode.utf8.find
+local UAsub = unicode.ascii.sub
 local Ugmatch = unicode.utf8.gmatch
 
 
@@ -249,6 +258,184 @@ M.find = find
 
 
 
+--- Get buffer size used for reading files.
+--
+-- @param self  Callee reference.
+-- @return Buffer size in bytes.
+-- @see read_file
+local function get_buffer_size(self)
+   return self.file_buffer_size
+end
+M.get_buffer_size = get_buffer_size
+
+
+
+--- Set buffer size used for reading files.
+--
+-- @param self  Callee reference.
+-- @param buffer_size  New buffer size in bytes.
+-- @return Old buffer size in bytes.
+-- @see read_file
+local function set_buffer_size(self, buffer_size)
+   local old_buffer_size = self.file_buffer_size
+   self.file_buffer_size = buffer_size
+   return old_buffer_size
+end
+M.set_buffer_size = set_buffer_size
+
+
+
+--- Get chunk iterator.
+-- Reading records from files is done through a buffer.  This function
+-- returns an iterator over the chunks.  You might want to refer to this
+-- iterator when implementing a custom record iterator.  The file handle
+-- argument is not closed.
+--
+-- @param self  Callee reference.
+-- @param fin  Input file handle.
+-- @return Chunk iterator.
+-- @see read_file
+-- @see file_records
+-- @see set_buffer_size
+-- @see get_buffer_size
+local function file_chunks(self, fin)
+   -- Check for valid file handle.
+   assert(fin, 'Invalid input file handle.')
+   -- Get local reference to buffer size.
+   local BUFFERSIZE = self:get_buffer_size()
+
+   return function ()
+      -- Read next chunk.
+      local chunk, rest = fin:read(BUFFERSIZE, '*l')
+      -- EOF?
+      if not chunk then
+         return
+      end
+      if rest then chunk = chunk .. rest .. '\n' end
+      return chunk
+   end
+end
+M.file_chunks = file_chunks
+
+
+
+--- Get record iterator.
+-- This function returns an iterator over the records in a file.
+-- Records are specified by the last argument, which must be a Lua
+-- string pattern.  The file handle argument is not closed.
+--
+-- @param self  Callee reference.
+-- @param fin  Input file handle.
+-- @param rec_pattern  A Lua string pattern, determining what is
+-- considered a record.
+-- @return Record iterator.
+-- @see read_file
+-- @see file_chunks
+-- @see set_buffer_size
+local function file_records(self, fin, rec_pattern)
+   -- Chunk iterator.
+   local next_chunk = self:file_chunks(fin)
+   -- Initialize chunk.
+   local chunk = next_chunk() or ''
+   local pos = 1
+
+   return function()
+      repeat
+         local s, e = Ufind(chunk, rec_pattern, pos)
+         -- Record found?
+         if s then
+            -- Update position.
+            pos = e + 1
+            -- Return record.
+            return UAsub(chunk, s, e)
+         else
+            -- Read new chunk.
+            chunk = next_chunk()
+            -- EOF?
+            if not chunk then
+               return
+            end
+            pos = 1
+         end
+      until false
+   end
+end
+M.file_records = file_records
+
+
+
+--- Convert a record read from a file into a key to insert into trie.
+-- By default, table representation of the record is returned.
+--
+-- @param self  Callee reference.
+-- @param record  A record.
+-- @return Key.
+-- @see read_file
+local function record_to_key(self, record)
+   return self:key(record)
+end
+M.record_to_key = record_to_key
+
+
+
+--- Convert a record read from a file into a value to be associated with
+--- a key in trie.
+-- By default, the value `true` is returned.
+--
+-- @param self  Callee reference.
+-- @param record  A record.
+-- @return Value.
+-- @see read_file
+local function record_to_value(self, record)
+   return true
+end
+M.record_to_value = record_to_value
+
+
+
+--- Read a file and store the contents in trie.
+-- This function callback driven reads a file and stores the contents in
+-- the trie.  The given file handle is not closed.
+--
+-- Note, files are buffered while reading.  Lines in the input file are
+-- always read as a whole into the buffer.  The record pattern is always
+-- searched for in the current read buffer.  That is, records cannot be
+-- larger than the file buffer.  In general, this is not a restriction.
+-- If it is for you, you have to replace this function with a custom
+-- one.
+--
+-- @param self  Callee reference.
+-- @param fin  File handle to read records from.
+-- @param rec_pattern  A Lua string pattern, determining what is
+-- considered a record.  If this parameter is an empty string or `nil`,
+-- records are considered complete lines (without line ending
+-- characters).
+-- @return Number new (keys, value) pairs stored in trie.
+-- @see record_to_key
+-- @see record_to_value
+-- @see file_records
+-- @see file_chunks
+-- @see set_buffer_size
+local function read_file(self, fin, rec_pattern)
+   -- Initialize record pattern.
+   if rec_pattern == nil or rec_pattern == '' then
+      rec_pattern = '[^\n\r]+'
+   end
+   local count = 0
+   for record in self:file_records(fin, rec_pattern) do
+      local key = self:record_to_key(record)
+      local value = self:record_to_value(record)
+      local old_value = self:insert(key, value)
+      if value ~= old_value and value ~= nil then
+         count = count + 1
+      end
+   end
+   return count
+end
+M.read_file = read_file
+
+
+
 --- Converts a value associated with a key in the trie into string.
 --  By default, Lua's `tostring` function is applied to the value.
 --
@@ -342,6 +529,8 @@ local function init(self)
    self.root = self:new_node()
    -- Table of values associated with nodes.
    self.value = {}
+   -- Set default buffer size used for file reading.
+   self:set_buffer_size(8*1024*1024)
 end
 M.init = init
 

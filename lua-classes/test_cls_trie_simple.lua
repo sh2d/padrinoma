@@ -38,3 +38,20 @@ end
 
 t:show()
 t:show(true)
+
+
+
+local t2 = cls_trie:new()
+collectgarbage('collect')
+local a,b,c = collectgarbage('count')
+
+do
+   local count = t2:read_file(io.stdin)
+   io.write(count, ' records read\n')
+end
+
+b = collectgarbage('count')
+collectgarbage('collect')
+c = collectgarbage('count')
+print(a, b, c, (c-a)/1024 .. ' MB')
+print('nodes: ', t2.nodes, 'per node: ', (c-a)*1024/t2.nodes .. ' bytes')
