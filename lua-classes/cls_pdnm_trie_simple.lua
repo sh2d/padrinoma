@@ -249,6 +249,20 @@ M.find = find
 
 
 
+--- Converts a value associated with a key in the trie into string.
+--  By default, Lua's `tostring` function is applied to the value.
+--
+-- @param self  Callee reference.
+-- @param value  A value.
+-- @return String represenation of the value.
+-- @see _show
+local function value_to_string(self, value)
+   return tostring(value)
+end
+M.value_to_string = value_to_string
+
+
+
 -- Declare two upvalues used in function _show:
 --
 -- Print keys in compact format?
@@ -272,7 +286,7 @@ local function _show(self, node)
    -- Has current node an associated value?
    local value = self.value[node]
    if value ~= nil then
-      io.write(Tconcat(letters), '=', tostring(value), '\n')
+      io.write(Tconcat(letters), '=', self:value_to_string(value), '\n')
       -- Print letters leading to this node only once.
       if flag_compact then
          -- Replace latest letter in key by a space.

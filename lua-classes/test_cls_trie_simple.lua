@@ -32,5 +32,9 @@ print(t:insert(t:key('abcde'), 1))
 print(t:insert(t:key('abcx'), 2))
 print('***')
 
+function t:value_to_string(value)
+   return '\''..tostring(value)..'\''
+end
+
 t:show()
 t:show(true)
