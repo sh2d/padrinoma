@@ -43,13 +43,29 @@
 
 
 --- This module implements is a simple trie class.
--- The implementation does not claim to be memory or performance
--- efficient.  The original purpose of this trie implementation was a
--- flexible re-implementation of <a
+-- This is a linked table implementation of a trie data structure.  The
+-- implementation does not claim to be memory or performance efficient.
+-- The original purpose of this trie implementation was a flexible
+-- re-implementation of <a
 -- href='http://tug.org/docs/liang/'>F.M. Liang's hyphenation
 -- algorithm</a> in Lua.<br />
 --
+-- This trie requires keys to be in table representation.  Table
+-- representation of a key is a sequence of <em>letters</em> (a table
+-- with values starting at index 1).  The term <em>letter</em> here
+-- refers to any valid Lua value, except the value `nil`.  That is, the
+-- alphabet of valid letters is not restricted to characters
+-- representing letters as known from scripts.  As an example, the key
+-- <code>{'h', 'e', 'l', 'l', 'o'}</code> consists of five letters (each
+-- one a single character) and might represent the word
+-- <code>hello</code>, while the table <code>{'hello'}</code> represents
+-- an entirely different word with only a single letter (a string).  Two
+-- tables represent the same key, if they contain the same combination
+-- of letters (the same key/value pairs).  A function is provided to
+-- convert an arbitrary key into table representation.<br />
+--
 -- This class is derived from class `cls_pdnm_oop`.
+--
 --
 -- @class module
 -- @name cls_pdnm_trie_simple
@@ -79,6 +95,12 @@ local M = cls_oop:new()
 
 
 
+-- Short-cuts.
+local Tinsert = table.insert
+local Ugmatch = unicode.utf8.gmatch
+
+
+
 --- Create new trie node.
 -- This function returns a newly created trie node with no associated
 -- value.
@@ -94,8 +116,8 @@ M.new_node = new_node
 
 
 --- Set value associated with a trie node.
--- This function stores a value in a trie and associates it with the
--- given node.
+-- This function stores a value in a trie associated with the given
+-- node.
 --
 -- @param self  Callee reference.
 -- @param node  Trie node.
@@ -136,6 +158,92 @@ local function get_root(self)
    return self.root
 end
 M.get_root = get_root
+
+
+
+--- Convert a key to table representation.
+-- A table argument is returned as is.  A string argument is converted
+-- into a table containing UTF-8 characters as values, starting at index
+-- 1 (a sequence).  Any non-table, non-string argument is converted into
+-- a table with the argument as value at index 1 (a sequence).
+--
+-- @param key  Key to convert into table representation.
+-- @return Key in table representation.
+local function key(self, key)
+   local key_type = type(key)
+   if key_type == 'table' then
+      return key
+   elseif key_type == 'string' then
+      key_table = {}
+      for ch in Ugmatch(key, '.') do
+         Tinsert(key_table, ch)
+      end
+      return key_table
+   else
+      return { key }
+   end
+end
+M.key = key
+
+
+
+--- Insert a key into a trie.
+-- Any existing value is replaced by the new value.
+--
+-- @param self  Callee reference.
+-- @param key  A key in table representation.
+-- @param new_value  A non-nil value associated with the key.
+-- @return Old value associated with key.
+local function insert(self, key, new_value)
+   assert(type(key) == 'table','Key must be in table representation. Got ' .. type(key) .. ': ' .. tostring(key))
+   -- Start inserting letters at root node.
+   local node = self.root
+   assert(type(node) == 'table', 'Trie root not found!')
+   -- Iterate over key letters.
+   for _,letter in ipairs(key) do
+      -- Search matching edge.
+      local next = node[letter]
+      -- Need to insert new edge?
+      if next == nil then
+         next = self:new_node()
+         node[letter] = next
+      end
+      -- Advance.
+      node = next
+   end
+   -- Save old value.
+   local old_value = self.value[node]
+   -- Set new value.
+   self.value[node] = new_value
+   -- Return old value.
+   return old_value
+end
+M.insert = insert
+
+
+
+--- Search for a key in trie.
+--
+-- @param self  Callee reference.
+-- @param key  Key to search in table representation.
+-- @return Value associated with key, or `nil` if the key cannot be found.
+local function find(self, key)
+   assert(type(key) == 'table','Key must be in table representation. Got ' .. type(key) .. ': ' .. tostring(key))
+   -- Start searching at root node.
+   local node = self.root
+   assert(type(node) == 'table', 'Trie root not found!')
+   -- Iterate over key letters.
+   for _,letter in ipairs(key) do
+      -- Search matching edge.
+      node = node[letter]
+      if node == nil then
+         return nil
+      end
+   end
+   -- Return value associated with target node.
+   return self.value[node]
+end
+M.find = find
 
 
 
