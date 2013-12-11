@@ -3,6 +3,16 @@
 Basic OOP class.
 
 
+# `cls_pdnm_trie_simple.lua`
+
+Basic trie class.
+
+
+# `test_cls_trie_simple.lua`
+
+Test file.
+
+
 
 <!--
 %%% Local Variables: 
