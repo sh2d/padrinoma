@@ -1,0 +1,37 @@
+This is the development repository of the padrinoma package for LuaTeX.
+If not stated otherwise, the files in this repository are subject to the
+[AGPL v3](https://www.gnu.org/licenses/agpl-3.0-standalone.html)
+license.
+
+
+
+### Meta information
+
+Summary description: The padrinoma package provides means to apply
+pattern driven node list manipulations in the LuaTeX typesetting system.
+Such low-level operations can be used to handle certain typographic
+features that involve glyph replacements, such as non-standard
+hyphenation or smart ligaturing.  Technically, this is an application of
+[Liang's hyphenation algorithm](http://tug.org/docs/liang/).  
+License: [AGPL v3](https://www.gnu.org/licenses/agpl-3.0-standalone.html)  
+Main developer: Stephan Hennig, <sh2d@arcor.de>  
+
+
+
+### Development
+
+The development repository is currently hosted at
+[GitHub](https://github.com/sh2d/padrinoma/).  Bugs and a wish list can
+be found in the
+[issue tracker](https://github.com/sh2d/padrinoma/issues/).
+
+Patches welcome!
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->
