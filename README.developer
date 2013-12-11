@@ -40,6 +40,16 @@ example, the Lua base class can be found in a file named
 `cls_pdnm_oop.lua`.
 
 
+## Call-back names
+
+Call-back function names consist of an actual name and a prefix,
+separated by two underscores.  The prefix starts with the string `cb_`
+followed by a string refering to the class providing the call-back.
+
+As an example, class `cls_pdnm_pattern` provides a call-back
+`cb_pdnm_pattern__decomposition_start`.
+
+
 
 # Patches welcome!
 
