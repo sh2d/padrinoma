@@ -1,0 +1,55 @@
+# Repository
+
+The development repository is currently hosted at
+[GitHub](https://github.com/sh2d/padrinoma/).  Bugs and a wish list can
+be found in the
+[issue tracker](https://github.com/sh2d/padrinoma/issues/).
+
+Main development languages are Lua and TeX.
+
+
+
+# Code documentation
+
+Lua code documentation is in
+[LuaDoc](http://keplerproject.github.com/luadoc/) format and can be
+generated via
+
+    luadoc -d API *.lua
+
+
+
+# Design decisions
+
+## Lua and OOP
+
+As far as Lua code makes use of the OOP paradigm, classes are derived
+from a base class (module) `pdnm_cls_oop.lua`.  This class implements a
+proto-type based OOP scheme following the approach presented in the book
+<em>Programming in Lua</em> by R. Ierusalimschy, of which the first
+edition is also <a
+href='http://www.lua.org/pil/contents.html/'>available online</a>.
+
+
+## File names
+
+Because this software is intended to be included into TeX distributions,
+file names are an issue.  Where it seems appropriate, the prefix `pdnm`
+is used as a pseudo name space in file names of this software.  As an
+example, the Lua base class can be found in a file named
+`cls_pdnm_oop.lua`.
+
+
+
+# Patches welcome!
+
+Thanks!
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->

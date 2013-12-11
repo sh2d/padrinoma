@@ -1,3 +1,8 @@
+# `lua-classes/`
+
+Lua class modules for various data structures.
+
+
 # `COPYING`
 
 Documentation: repository license.
@@ -11,6 +16,11 @@ Documentation: short file description.
 # `README`
 
 Documentation: various.
+
+
+# `README.developer`
+
+Documentation: development related.
 
 
 
