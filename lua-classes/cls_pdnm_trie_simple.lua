@@ -96,7 +96,9 @@ local M = cls_oop:new()
 
 
 -- Short-cuts.
+local Tconcat = table.concat
 local Tinsert = table.insert
+local Tremove = table.remove
 local Ugmatch = unicode.utf8.gmatch
 
 
@@ -244,6 +246,73 @@ local function find(self, key)
    return self.value[node]
 end
 M.find = find
+
+
+
+-- Declare two upvalues used in function _show:
+--
+-- Print keys in compact format?
+local flag_compact
+-- A table containing the letters of the key leading to the current
+-- node.
+local letters
+
+
+
+--- (internal) This function recursively advances through the trie.
+-- It prints all letters valid at a node.  If a key is found, the
+-- associated value is printed, separated by an equals sign `=` from the
+-- key.
+--
+-- @param self  Callee reference.
+-- @param node  A trie node.
+-- @see show
+-- @usage Internal function.
+local function _show(self, node)
+   -- Has current node an associated value?
+   local value = self.value[node]
+   if value ~= nil then
+      io.write(Tconcat(letters), '=', tostring(value), '\n')
+      -- Print letters leading to this node only once.
+      if flag_compact then
+         -- Replace latest letter in key by a space.
+         for i,_ in ipairs(letters) do
+            letters[i] = ' '
+         end
+      end
+   end
+   -- Recurse into child nodes.
+   for letter, next in pairs(node) do
+      Tinsert(letters, letter)
+      _show(self, next)
+      Tremove(letters)
+      -- Print letters leading to this node only once.
+      if flag_compact then
+         for i,_ in ipairs(letters) do
+            letters[i] = ' '
+         end
+      end
+   end
+end
+M._show = _show
+
+
+
+--- Print all keys stored in a trie.
+-- Values are separated by an hash mark.
+--
+-- @param self  Callee reference.
+-- @param compact  boolean flag: Print keys in compact format?
+-- @see _show
+local function show(self, compact)
+   assert(type(self.root) == 'table', 'Trie root not found!')
+   -- Initialize upvalues.
+   flag_compact = compact
+   letters = {}
+   -- Recurse, starting at root node.
+   self:_show(self.root)
+end
+M.show = show
 
 
 

@@ -26,3 +26,11 @@ print('***')
 print(t:find(t:key('abcd')))
 t:insert({'a', 'b', 'c', 'd'}, 'abcd')
 print(t:find(t:key('abcd')))
+print('***')
+
+print(t:insert(t:key('abcde'), 1))
+print(t:insert(t:key('abcx'), 2))
+print('***')
+
+t:show()
+t:show(true)
