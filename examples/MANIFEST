@@ -1,0 +1,17 @@
+This directory contains some (mostly simple) test applications.
+Documentation may be terse or non-existent.
+
+# `which_strings/`
+
+An application of intercepting the process of string decomposition.
+Reads-in a list of strings and decomposes them using Liang patterns.
+For every pattern, all matching strings are recorded.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->
