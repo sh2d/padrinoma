@@ -217,6 +217,17 @@ M.decomposition_start = decomposition_start
 
 
 
+--- Call-back: Called during word decomposition, before the set of
+-- active tries is iterated (for the current letter).
+--
+-- @param self  Callee reference.
+-- @see decomposition_advance
+local function cb_pdnm_pattern__decomposition_pre_iterate_active_tries(self)
+end
+M.cb_pdnm_pattern__decomposition_pre_iterate_active_tries = cb_pdnm_pattern__decomposition_pre_iterate_active_tries
+
+
+
 --- Call-back: Called during word decomposition, whenever a matching
 -- pattern is identified.  Do nothing, by default.
 --
@@ -235,6 +246,7 @@ M.cb_pdnm_pattern__decomposition_pattern_found = cb_pdnm_pattern__decomposition_
 -- @param self  Callee reference.
 -- @param letter  A word letter.
 -- @see cb_pdnm_pattern__decomposition_pattern_found
+-- @see cb_pdnm_pattern__decomposition_pre_iterate_active_tries
 local function decomposition_advance(self, letter)
    -- Retrieve current decomposition status.
    local letter_pos = self.letter_pos + 1
@@ -244,6 +256,7 @@ local function decomposition_advance(self, letter)
    -- Insert new active trie state into stack.
    Tinsert(active, {node=self.trie_root, start_pos=letter_pos})
    -- Iterate (backwards) over all active trie states.
+   self:cb_pdnm_pattern__decomposition_pre_iterate_active_tries()
    for i = #active,1,-1 do
       -- Retrieve a trie state of interest.
       local state = active[i]
