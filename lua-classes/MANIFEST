@@ -8,12 +8,22 @@ Basic OOP class.
 Pattern decomposition class.
 
 
+# `cls_pdnm_spot.lua`
+
+Spot calculation class.
+
+
 # `cls_pdnm_trie_simple.lua`
 
 Basic trie class.
 
 
 # `test_cls_pattern.lua`
+
+Test file.
+
+
+# `test_cls_spot.lua`
 
 Test file.
 
