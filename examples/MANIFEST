@@ -10,6 +10,13 @@ letter position.  Diagrams are created for all string lengths as well as
 the complete list.
 
 
+# `debug_spots/`
+
+An application of intercepting the process of string decomposition.
+Shows the process of calculating spots within strings using Liang
+patterns.
+
+
 # `which_strings/`
 
 An application of intercepting the process of string decomposition.
