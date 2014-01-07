@@ -1,0 +1,18 @@
+# `pdnm_nl_printer.lua`
+
+A tiny node list printer module.  Prints node lists to the log file
+during a LuaTeX run.
+
+
+# `test_nl_printer.tex`
+
+Test file for LuaLaTeX format.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->

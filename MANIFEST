@@ -8,6 +8,11 @@ Example applications.
 Lua class modules for various data structures.
 
 
+# `lua-modules/`
+
+Various Lua modules.
+
+
 # `COPYING`
 
 Documentation: repository license.

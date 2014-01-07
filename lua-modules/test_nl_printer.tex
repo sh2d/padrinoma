@@ -1,0 +1,58 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\usepackage[UKenglish, german]{babel}
+\directlua{
+  local nlp = require('pdnm_nl_printer')
+  local printer = nlp.new_printer('[node] ')
+  local function cb(head)
+     printer(head)
+     lang.hyphenate(head)
+     return true
+  end
+  luatexbase.add_to_callback('hyphenate', cb, 'test_h')
+%  luatexbase.add_to_callback('ligaturing', cb, 'test_l')
+%  luatexbase.add_to_callback(kerning, cb, 'test_k')
+%  luatexbase.add_to_callback('pre_linebreak_filter', cb, 'test_pre')
+%  luatexbase.add_to_callback('post_linebreak_filter', cb, 'test_post')
+}
+\begin{document}
+\hyphenation{
+  ba{k-}{k}{ck}en
+}
+%Ein einfaches Beispiel.  Und noch eines.
+
+%drucken dru"cken
+
+\discretionary{a-}{b}{c}
+
+%dru\discretionary{k-}{}{c}ken dru\discretionary{k-}{k}{ck}en
+
+%pflücken
+
+%Auflage Auf"|lage
+
+%Brennessel Bre"nnessel
+
+%offen finden Offizier
+
+%finden Treff
+%ﬁnden Treff
+
+%Trick
+%(keinem)
+%Achtungs{\selectlanguage{UKenglish}e}rfolge
+
+\showhyphens{
+%  Auflage
+%  Auf"|lage
+%  backen
+%  laufen
+%  lau-fen
+%  lau\-fen
+  finden
+  ﬁnden
+}
+\end{document}
