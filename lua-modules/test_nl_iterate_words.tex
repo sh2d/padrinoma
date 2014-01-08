@@ -1,0 +1,39 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\usepackage[UKenglish, german]{babel}
+\directlua{
+  dofile('test_nl_iterate_words.lua')
+}
+\begin{document}
+\hyphenation{
+  ba{k-}{k}{ck}en
+}
+%Ein einfaches Beispiel.  Und noch eines.
+
+%drucken dru"cken
+
+%dru\discretionary{k-}{}{c}ken dru\discretionary{k-}{k}{ck}en
+
+%pflücken
+
+Auflage Auf"|lage
+
+Brennessel Bre"nnessel
+
+offen finden Offizier
+
+finden Treff
+
+%Trick
+%(keinem)
+%Achtungs{\selectlanguage{UKenglish}e}rfolge
+
+\showhyphens{
+%  Auflage
+%  Auf"|lage
+  backen
+}
+\end{document}

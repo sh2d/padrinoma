@@ -1,7 +1,22 @@
+# `pdnm_nl_iterate_words.lua`
+
+Provides an iterator over the words in a node list.
+
+
 # `pdnm_nl_printer.lua`
 
 A tiny node list printer module.  Prints node lists to the log file
 during a LuaTeX run.
+
+
+# `test_nl_iterate_words.lua`
+
+Test file.
+
+
+# `test_nl_iterate_words.tex`
+
+Test file for LuaLaTeX format.
 
 
 # `test_nl_printer.tex`
