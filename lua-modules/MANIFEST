@@ -3,6 +3,11 @@
 Provides an iterator over the words in a node list.
 
 
+# `pdnm_nl_manipulation.lua`
+
+Provide means for pattern driven node list manipulations.
+
+
 # `pdnm_nl_printer.lua`
 
 A tiny node list printer module.  Prints node lists to the log file
@@ -17,6 +22,16 @@ Test file.
 # `test_nl_iterate_words.tex`
 
 Test file for LuaLaTeX format.
+
+
+# `test_nl_manipulation.tex`
+
+Test file for LuaLaTeX format.
+
+
+# `test_nl_manipulation-print.lua`
+
+Manipulation test module.
 
 
 # `test_nl_printer.tex`
