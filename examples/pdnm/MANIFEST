@@ -2,6 +2,11 @@ This directory contains some pattern driven node list manipulation
 examples.  Documentation may be terse or non-existent.
 
 
+# `german-nstd-hyph/`
+
+Contains a LuaLaTeX document showing German non-standard hyphenation.
+
+
 # `hyph-mark-color/`
 
 Contains a LuaLaTeX document where letters surrounding valid hyphenation

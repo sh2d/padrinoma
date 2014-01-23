@@ -1,0 +1,48 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage[main=german, english]{babel}
+\directlua name {test_node_list_find_spots}{
+  local nlm = require('pdnm_nl_manipulation')
+  nlm.register_manipulation('nstd-hyph-de-1901.pat.txt', 'pdnm_nstd-hyph-de-1901')
+}
+\begin{document}
+
+\begin{otherlanguage*}{english}
+  This document contains some paragraphs of random German words where
+  non-standard hyphenation is desirable.  Note how sometimes wrong
+  hyphenations \emph{Bak-kstube} and \emph{Rük-kstoß} are chosen.
+  Better non-standard hyphenation patterns are still needed.
+\end{otherlanguage*}
+
+\bigskip
+
+Dieses Dokument enthält einige Absätze mit deutschen Wörtern, die
+Sondertrennungen erfordern.  Es können die falschen Trennungen
+\emph{Bak-kstube} und \emph{Rük-kstoß} auftreten.  Bessere
+Sondertrennmuster werden noch benötigt.
+
+\bigskip
+
+\directlua{
+   local words = {
+      'Acker', 'Ackerböschung', 'auflockern',
+      'backen', 'Backstube',
+      'drucken',
+      'Ecke',
+      'Leck', 'lecker',
+      'pflücken',
+      'Rückstoß',
+      'Zucker', 'Zuckerbäcker', 'Zuckerwatte',
+   }
+   math.randomseed(os.time())
+   for i = 1,3 do
+      for w = 1,90 do
+         tex.print(words[math.random(14)] .. ' ')
+      end
+      tex.print('\par')
+   end
+}
+
+\end{document}
