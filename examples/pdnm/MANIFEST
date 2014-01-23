@@ -8,6 +8,12 @@ Contains a LuaLaTeX document where letters surrounding valid hyphenation
 points are coloured.
 
 
+# `hyph-mark-explicit/`
+
+Contains a LuaLaTeX document where all valid hyphenation points are
+marked by a special character.
+
+
 
 <!--
 %%% Local Variables: 
