@@ -1,0 +1,13 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage[latin]{babel}
+\directlua{
+  local nlm = require('pdnm_nl_manipulation')
+  nlm.register_manipulation('hyph-la.pat.txt', 'pdnm_hyph-mark-color')
+}
+\usepackage{lipsum}
+\begin{document}
+\lipsum
+\end{document}

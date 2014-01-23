@@ -10,6 +10,11 @@ letter position.  Diagrams are created for all string lengths as well as
 the complete list.
 
 
+# `pdnm/`
+
+Examples of pattern driven node list manipulation.
+
+
 # `debug_spots/`
 
 An application of intercepting the process of string decomposition.

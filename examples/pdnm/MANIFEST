@@ -1,0 +1,17 @@
+This directory contains some pattern driven node list manipulation
+examples.  Documentation may be terse or non-existent.
+
+
+# `hyph-mark-color/`
+
+Contains a LuaLaTeX document where letters surrounding valid hyphenation
+points are coloured.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->
