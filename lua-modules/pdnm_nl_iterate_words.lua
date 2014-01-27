@@ -103,54 +103,12 @@ local err, warn, info, log = luatexbase.provides_module(module)
 
 
 --- (Factory) Get a new word iterator.
--- The iterator function returned iterates over a node list and fires a
--- callback for every word found.
+-- The iterator function returnes the words found in the given node list
+-- one by one.  A word is a series of consecutive nodes of type `glyph`
+-- or `disc`.  For every word, first and last node are returned.
 --
--- @param cb_process_word  Callback function to fire for every word
--- found.  Argument to the callback function are two tables containing
--- information about the word found.<br />
---
--- In node list representation, a word is a series of consecutive nodes
--- of type `glyph`, `disc`, `kern` or `penalty`, starting with a glyph
--- node.<br />
---
--- Table represenation consists of two tables, that are the arguments to
--- the callback function.  Keys in both tables are character positions
--- (1..n).<br />
---
--- <ol>
---
--- <li>The first table contains as values the nodes of type `glyph`
--- corresponding to the characrers of the word.  Discretionary nodes
--- within a node list add to this table with the glyph nodes found in
--- their `replacement` node list.  Glyph nodes corresponding to
--- <em>automatic</em> ligatures add to the characters of a word with the
--- glyph nodes found in their `components` node list.  This has some
--- implications:
---
---   <ul>
---
---   <li>While automatic ligatures are replaced by (the nodes of) their
---   constituting characters, a word in table representation can contain
---   ligatures if they are already present in the input stream.</li>
---
---   <li>Because any glyph node signals the beginning of a word even if
---   it corresponds to an automatic ligature without further glyph nodes
---   as components, this table (and the second one described below) can
---   be completely empty.</li>
---
---   </ul>
--- </li>
---
--- <li>Values in the second table are either `nil` or a table.  If it is
--- a table, the table at position k is a stack of parent nodes of the
--- node at position k.  Parent nodes are either discretionary nodes or
--- glyph nodes, the latter corresponding to an automatic ligature (node
--- contains a components field).</li>
---
--- </ol>
---
--- @return Iterator function.  Argument is a node list head.
+-- @param head  Node list to traverse.
+-- @return Iterator function.
 local function words(head)
 
    -- Upvalue: Next node to investigate.

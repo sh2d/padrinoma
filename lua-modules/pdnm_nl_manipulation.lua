@@ -214,8 +214,9 @@ end
 --
 -- <li>The second table contains at index <code>i</code> a stack (a
 -- table) of parent nodes of the node at index <code>i</code> in the
--- first table.  Parent nodes may be discretionary nodes or glyph nodes
--- corresponding to a ligature.</li>
+-- first table.  A node has (nested) parent(s) if it is part of a
+-- `component` sub-list of a glyph node or part of a `replace` sub-list
+-- of a discretionary node.</li>
 --
 -- <li>The third table contains levels resulting from pattern matching
 -- the word (list) against the given spot object.  An index in this
