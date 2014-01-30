@@ -105,7 +105,16 @@ local err, warn, info, log = luatexbase.provides_module(module)
 --- (Factory) Get a new word iterator.
 -- The iterator function returnes the words found in the given node list
 -- one by one.  A word is a series of consecutive nodes of type `glyph`
--- or `disc`.  For every word, first and last node are returned.
+-- or `disc`.  For every word, first and last node are returned.<br />
+--
+-- This iterator doesn't fully comply with TeX's notion of words subject
+-- to hyphenation.  As an example, words next to an <code>\hbox</code>
+-- aren't hyphenated by TeX and changes in the language imply word
+-- boundaries.  Here's a link to <a
+-- href="https://foundry.supelec.fr/scm/viewvc.php/trunk/source/texk/web2c/luatexdir/lang/texlang.w?root=luatex&view=markup">the
+-- relevant LuaTeX C source code</a>.  See <a
+-- href="http://tug.org/pipermail/tex-hyphen/2014-January/001071.html">this
+-- mail</a> on the tex-hyphen list.
 --
 -- @param head  Node list to traverse.
 -- @return Iterator function.
