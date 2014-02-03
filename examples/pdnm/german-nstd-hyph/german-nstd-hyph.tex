@@ -3,7 +3,7 @@
 \documentclass{article}
 \usepackage{fontspec}
 \usepackage{multicol}
-\usepackage[main=german, english]{babel}
+\usepackage[main=english, german]{babel}
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
 % Parameters are:
@@ -14,32 +14,91 @@
 }
 \begin{document}
 
-\begin{otherlanguage*}{english}
-  This document contains some paragraphs of random German words and
-  named entities where non-standard hyphenation may or may not be
-  desirable.  In German, letters \emph{ck} turn into \emph{k-k} when
-  hyphenated.  This is achieved here by replacing a node representing
-  the letter \emph{c} by a discretionary node of the form
-  \verb+\discretionary{k-}{}{c}+.  The replacement is only applied where
-  indicated by suitable non-standard hyphenation patterns.  That way, no
-  physical mark-up is required in a text to enable \emph{ck}
-  hyphenation.  Have a look at the \verb+log+ file for a list of fully
-  hyphenated words.
-\end{otherlanguage*}
+\section{Automatic non-standard hyphenation with Lua\TeX}
 
-\begin{multicols}{5}
-% Make hyphenation desirable.
-\hyphenpenalty=-100
-\doublehyphendemerits=-100
-\finalhyphendemerits=-100
+This is an example application of the padrinoma package illustrating
+automatic German non-standard hyphenation with Lua\TeX.  No explicit
+non-standard hyphenation mark-up has been used in the source document.
+
+\subsection{German non-standard hyphenation rules}
+
+Besides standard hyphenation, in traditional German orthography, there
+are two non-standard hyphenation rules that call for more complex
+operations than the mere insertion of a hyphen at the end of a line:
+
+\begin{description}
+
+\item[ck-rule] When hyphenated, letters \emph{ck} turn into
+  \emph{k-k}:\par
+\begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}r}
+  \emph{Dackel} vs. \emph{Dak-kel} & (dachshund)\\
+\end{tabular*}
+
+\item [triple consonant rule] In compound words, of three equal adjacent
+  consonants followed by a vocal, one consonant is cancelled out.  As an
+  example, the words \emph{Schiff} and \emph{Fahrt} can be combined to
+  the word \emph{Schiffahrt}.  The second part of this rule says that
+  during hyphenation, cancelled consonants reappear:\par
+  \begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}r}
+    \emph{Schiffahrt} vs. \emph{Schiff-fahrt} & (shipping)\\
+  \end{tabular*}
+
+\end{description}
+But note, not every \emph{ck} is subject to hyphenation and the pattern
+‘word boundary with double consonant followed by a vocal’ indeed rarely
+stems from application of the three consonant rule:\strut\par
+\noindent\begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}r}
+  \emph{Steck-dose}, not Stek-kdose & (socket)\\
+  \emph{Rohstoff-industrie}, not Rohstoff-findustrie & (extractive industry)\\
+\end{tabular*}
+
+\subsection{Handling non-standard hyphenation manually}
+
+Traditional \TeX\ provides the \verb+\discretionary+ command for manual
+handling of non-standard hyphenation.  Using this command, the German
+word \emph{Dackel} can be typed-in as
+\verb+Da\discretionary{k-}{}{c}kel+.  The Babel and Polyglossia packages
+provide short-cuts so that one can also type \verb+Da"ckel+.  But the
+disadvantages of these solutions are that, in languages demanding
+non-standard hyphenation, authors need to manually apply non-standard
+hyphenation mark-up throughout a text, which makes a source document
+look cluttered and---more important---application of the mark-up demands
+mental attention and distracts from the actual task of writing.
+
+With Lua\TeX, the situation improved.  Hyphenation exceptions may now
+contain \verb+\discretionary+ commands, like
+\verb+\hyphenation{Da{k-}{}{c}kel}+, so that non-standard hyphenation
+mark-up isn't needed anymore for the words handled in the preamble of a
+document.  But still, that way, only words maintained in an explicit
+list become subject to non-standard hyphenation.
+
+\subsection{Automatic non-standard hyphenation}
+
+The \texttt{padrinoma} package is an attempt to solve the
+above-mentioned problems.  The following sections contain a selection of
+German words and named entities (changing at every compilation run)
+where non-standard hyphenation may or may not be desirable and is
+applied automatically.  The document source contains neither mark-up nor
+hyphenation exceptions.  Discretionaries are inserted fully
+automatically at Lua\TeX's node level at positions indicated by
+dedicated non-standard hyphenation patterns.  Patterns are read from
+file \verb+pdnm_nstd-hyph-de-1901.pat.txt+.  A list of fully hyphenated
+words can be found in the \verb+log+ file.
+
+The careful reader will find some wrong non-standard hyphenations, such
+as \emph{Rebek-ka} (non-standard hyphenation is discouraged within
+names).  These are due to still imperfect non-standard hyphenation
+patterns, which are subject to further improvements.  If you find
+examples of wrong German non-standard hyphenation, please send them to
+\verb+trennmuster@dante.de+.
+
 % # is used in Lua code.
 \catcode`\#=12
 \directlua{
-   words = {
+   words_ck = {
       % random words
       'Acker', 'Ackerböschung', 'Attacke', 'auflockern',
       'backen', 'Backstube', 'Bestecke', 'Bestecks', 'blicken',
-      'Blockade', 'Brücke',
       'Cricket', 'Kricket',
       'Dackel', 'Deckel', 'Dickicht', 'dreckig', 'dreieckig', 'drucken',
       'Ecke', 'eckig', 'entzückend', 'entzückt', 'erschrickst',
@@ -50,21 +109,17 @@
       'Hockey',
       'Jockey',
       'Lackschaden', 'Leck', 'lecker', 'lockig', 'Lücke',
-      'Macke', 'Meckerer', 'Mücke',
       'packen', 'packst', 'packt', 'pflücken', 'Pickel', 'Pickelhaube',
-      'Pickhacke', 'Picknickkorb', 'Pocken', 'puckern',
+      'Pickhacke', 'Picknickkorb',
       'recken', 'reckst', 'Reckstange', 'Röcke', 'Rucksack', 'Rücken',
-      'Rückerstattung', 'Rücklicht', 'Rückzug',
+      'Rückerstattung',
       'Sack', 'schlecken', 'schmecke', 'Schnecke', 'Schockwelle',
-      'Socken', 'Steckdose', 'stecken', 'Stickoxid', 'Stöcker',
+      'Socken', 'Steckdose', 'stecken',
       'Stockfisch', 'Stockwerk', 'strecken', 'streckst', 'Strecksprung',
       'Streckung', 'Stuckateur', 'Stücke', 'Stücken', 'Stückchen',
       'stückweise',
-      'Tischdecke', 'trocknen', 'trockne', 'trocknest', 'Trockner',
-      'verstecken', 'Versteckspiel', 'vertrackt',
       'Weckruf', 'Wicke', 'Wicklung',
       'zickig', 'Zickzack', 'Zucker', 'Zuckerbäcker', 'zweckmäßig',
-      'zwicke', 'zwickst',
       % systematic letter combinations
       'Blockade', 'Deckadresse',%cka
       'Drucker', 'Abdruckerlaubnis',%cke
@@ -76,110 +131,126 @@
       'Backöfen',%ckö
       'Rückübertragung',%ckü
       % named entities
-      'Ahlbeck', 'Ahlbecker', 'Ahlbecks',
-      'Auckland',
-      'Bad Säckingen',
-      'Bad Wilsnack', 'Bad Wilsnacker', 'Bad Wilsnacks',
-      'Barack', 'Baracks',
-      'Becker', 'Beckham', 'Beckmann', 'Becks', 'Becky',
-      'Bismarck', 'Bismarcks', 'Bismarcksche',
-      'Blacky',
-      'Borckward', 'Borckwart', 'Borckwardt',
-      'Brinckmann',
-      'Brockdorf', 'Brockdorff', 'Brockhoff',
-      'Bruckmüller',
-      'Buckow',
       'Deckert',
-      'Delbrück', 'Delbrücks',
-      'Dick', 'Dicks', 'Dickens',
-      'Dircksen',
       'Eckart', 'Eckehard', 'Eckehardt', 'Eckhard', 'Eckhardt',
       'Eckernförde',
-      'Eickstedt',
-      'Flecken Zechlin',
-      'Fock', 'Focks', 'Focke',
-      'Franck', 'Francks', 'Francke', 'Franckes', 'Francken',
-      'Frederick', 'Fredericks',
       'Fricke', 'Fricktal',
-      'Gauck', 'Gaucks',
-      'Gecko',
       'Glienicke',
-      'Haack', 'Haacks',
-      'Hancock', 'Hancocks',
-      'Hausruckviertel',
       'Hendricks',
-      'Hickory',
       'Hockenheim',
       'Huckleberry',
-      'Hunsrück', 'Hunsrücks',
       'Innsbruck', 'Innsbrucker', 'Innsbrucks',
-      'Jack', 'Jacks', 'Jackson', 'Jacksonville',
-      'Kentucky',
-      'Klickermann',
       'Knickerbocker',
       'Kuckuck', 'Kuckucks',
-      'Lamarck', 'Lamarcks',
       'Lübeck', 'Lübecker', 'Lübecks', 'Lübbecke',
       'Luckenwalde', 'Luckner',
-      'Mackensen',
-      'Mackenzie', 'McKenzie',
-      'McKean',
       'Mackie Messer',
       'Mecklenburg',
-      'Mischnick', 'Mischnicks',
       'Mount McKinley',
       'Neckar', 'Neckarsulm',
-      'Nick', 'Nicks', 'Nicki', 'Nicky',
-      'Noack', 'Noacks',
-      'ocker',
       'Osnabrück', 'Osnabrücker', 'Osnabrücks',
       'Packard',
-      'Patrick', 'Patricks',
-      'Peck', 'Pecks',
-      'Planck', 'Plancks', 'Plancksche',
       'Pückler',
       'Rebecka',
       'Recklinghausen', 'Recknagel',
       'Rockefeller', 'Rockford', 'Rocky Mountains',
       'Rostock', 'Rostocker', 'Rostocks',
       'Saarbrücken',
-      'Schenck',
       'Schmöckwitz',
       'Schreckenberg',
       'Schweickhardt',
       'Senckenberg',
       'Sickingen',
-      'Steckborn',
-      'Steinbrück', 'Steinbrücks',
       'Stockerau', 'Stockhausen', 'Stockholm',
-      'Struck', 'Strucks', 'Strucksche',
-      'Stücklen',
       'Tresckow',
       'Uckermark', 'Ueckermünde',
-      'Vicki', 'Vicky',
-      'Vöcklabruck', 'Vöcklabrucks',
       'Weitzsäcker', 'Weizsäcker',
-      'Westrick', 'Westricks',
       'Winckelmann',
       'Yorck', 'Yorcks', 'Yorckscher',
       'Zweibrücken',
       'Zwickau',
+    }
+    words_triple = {
+      % triple consonant words
+      'Baustoffabrik',
+      'Schiffahrt',
+      'Kunststoffasern',
+      'Kunststoffenster',
+      'Baustoffirma',
+      'Zellstoffirma',
+      'schifförmig',
+      'Geröllawine',
+      'Metallegierung',
+      'Abfülleistung',
+      'Nullösung',
+      'Dämmaßnahme',
+      'Klemmechanismus',
+      'Kammolch',
+      'Brennessel',
+      'Kennummer',
+      'Kreppapier',
+      'Kippunkt',
+      'Ballettanz',
+      'Schrottank',
+      'Fetteilchens',
+      'Schnittiefe',
+      % non-triple consonant words
+      'Baustoffindustrie',
+      'Brotteig',
+      'Knettiere',
+      'Kunststoffascher',
+      'Kunststoffindustrie',
+      'Kunststofflasche',
+      'Schleppanker',
+      'Schrottanker',
+      'Bettruhe',
    }
-   math.randomseed(os.time())
-   for i = 1,3 do
-      for w = 1,90 do
-         tex.print(words[math.random(#words)] .. ' ')
+   function paragraphs(words, num_p, num_w)
+      for i = 1,num_p do
+         for w = 1,num_w do
+            tex.print(words[math.random(#words)] .. ' ')
+         end
+         tex.print('\par')
       end
-      tex.print('\par')
    end
+   math.randomseed(os.time())
+}
+
+\subsection{Non-standard hyphenation examples}
+
+\begin{multicols}{5}[\subsubsection{\emph{ck} rule}]
+\selectlanguage{german}
+% Make hyphenation desirable.
+\hyphenpenalty=-100
+\doublehyphendemerits=-100
+\finalhyphendemerits=-100
+\directlua{
+  paragraphs(words_ck, 2, 40)
 }
 \end{multicols}
+
+\begin{multicols}{2}[\subsubsection{Triple consonant rule}]
+\selectlanguage{german}
+% Make hyphenation desirable.
+\hyphenpenalty=-100
+\doublehyphendemerits=-100
+\finalhyphendemerits=-100
+\directlua{
+  paragraphs(words_triple, 2, 50)
+}
+\end{multicols}
+
 % Output a list of hyphenated words to log file.
+\begin{otherlanguage}{german}
 \showhyphens{
   \directlua{
-     for _,word in ipairs(words) do
+     for _,word in ipairs(words_ck) do
+        tex.print(word .. ' ')
+     end
+     for _,word in ipairs(words_triple) do
         tex.print(word .. ' ')
      end
   }
 }
+\end{otherlanguage}
 \end{document}

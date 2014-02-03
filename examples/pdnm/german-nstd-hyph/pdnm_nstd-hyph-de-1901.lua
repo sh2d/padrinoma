@@ -13,57 +13,82 @@ local Uchar = unicode.utf8.char
 local DISC = node.id('disc')
 local GLYPH = node.id('glyph')
 
-local function ck(head, twords)
+--- Construct pre node list for ck rule discretionary.
+-- Given two nodes <code>12</code>, return a list <code>2'-</code>,
+-- where <code>2'</code> is a copy of node <code>2</code>.
+local function get_pre_of_ck(head, first, second)
+   -- Make copy of k node.
+   local glyph_k = Ncopy(second)
+   glyph_k.attr = first.attr
+   -- Make copy of c node, changing char to hyphen.
+   local glyph_hyph = Ncopy(first)
+   glyph_hyph.char = 0x2d
+   -- Link both nodes.
+   glyph_k.prev = nil
+   Ninsert_after(glyph_k, glyph_k, glyph_hyph)
+   return glyph_k
+end
+
+--- Construct pre node list for triple consonant rule discretionary.
+-- Given two nodes <code>12</code>, return a list <code>1'1''-</code>,
+-- where <code>1'</code> and <code>1''</code> are copies of node
+-- <code>1</code>.
+local function get_pre_of_triple_consonant(head, first, second)
+   -- Make two copies of first node.
+   local glyph_cons1 = Ncopy(first)
+   local glyph_cons2 = Ncopy(first)
+   -- Make copy of first node, changing char to hyphen.
+   local glyph_hyph = Ncopy(first)
+   glyph_hyph.char = 0x2d
+   -- Link all three nodes.
+   glyph_cons1.prev = nil
+   Ninsert_after(glyph_cons1, glyph_cons1, glyph_cons2)
+   Ninsert_after(glyph_cons1, glyph_cons2, glyph_hyph)
+   return glyph_cons1
+end
+
+--- Apply a discretionary replacement.
+-- Triple consonant rule as well as ck rule are handled uniformly: Two
+-- nodes <code>12</code> are replaced by a
+-- <code>\discretionary{.}{}{1}2</code>, where . is a rule specific
+-- replacement.  A less invasive replacement exists for the case of
+-- triple consonant rule, but uniform handling of both rules allows for
+-- better code sharing.
+--
+-- @param head  Head of a node list.
+-- @param twords  A sequence of word property tables.
+local function nstd_hyph(head, twords)
    for _, word in ipairs(twords) do
       for pos, level in ipairs(word.levels) do
-         local first = word.nodes[pos-1]
-         local second = word.nodes[pos]
-         if (level % 2 == 1)
-            and not word.parents[pos-1] and not word.parents[pos]
-            and Uchar(TEXgetlccode(first.char)) == 'c' and Uchar(TEXgetlccode(second.char)) == 'k'
-         then
-            -- Pre sub-list:
-            --
-            -- Make copy of k node.
-            local pre1 = Ncopy(second)
-            pre1.attr = first.attr
-            -- Make copy of c node, changing char to hyphen.
-            local pre2 = Ncopy(first)-- hyphen character
-            pre2.char = 0x2d
-            -- Link both nodes.
-            pre2.prev = pre1
-            pre2.next = nil
-            pre1.prev = nil
-            pre1.next = pre2
-            -- Replace sub-list:
-            --
-            -- Copy of c node.
-            local repl1 = Ncopy(first)
-            repl1.prev = nil
-            repl1.next = nil
+         -- Spot with surrounding top-level glyph nodes?
+         if (level % 2 == 1) and not word.parents[pos-1] and not word.parents[pos] then
+            local first = word.nodes[pos-1]
+            local second = word.nodes[pos]
             -- Create discretionary node.
             local d = Nnew(DISC, 0)
             d.attr = first.attr
-            d.pre = pre1
-            d.replace = repl1
-            -- Insert discretionary before c node.
-            Ninsert_before(head, first, d)
-            local count = 0
-            local n = first
-            -- Remove c node and everything before k node.
-            repeat
-               count = count + 1
-               local next
-               head, next = Nremove(head, n)
-               Nfree(n)
-               n = next
-            until n == second
-            if count > 1 then
-               texio.write(count .. ' nodes removed from list\n')
+            -- Sub-list .pre:
+            if Uchar(TEXgetlccode(first.char)) == 'c' then
+               d.pre = get_pre_of_ck(head, first, second)
+            else
+               d.pre = get_pre_of_triple_consonant(head, first, second)
             end
+            local prefirst = first.prev
+            local presecond = second.prev
+            -- Sub-list .replace:
+            --
+            -- Unlink list (first)--(second.prev).
+            prefirst.next = second
+            second.prev = prefirst
+            -- And put it into .replace field.
+            first.prev = nil
+            presecond.next = nil
+            d.replace = first
+            -- Insert discretionary before second node.
+            Ninsert_before(head, second, d)
          end
       end
    end
 end
 
-return ck
+return nstd_hyph
