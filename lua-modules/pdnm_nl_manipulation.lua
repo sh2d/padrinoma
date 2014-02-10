@@ -73,7 +73,6 @@ local module = {
 
 -- Load third-party modules.
 local unicode = require('unicode')
-local nliw = require('pdnm_nl_iterate_words')
 local cls_spot = require('cls_pdnm_spot')
 
 
@@ -90,7 +89,6 @@ local M = {}
 
 -- Short-cuts.
 local Ntraverse = node.traverse
-local Sformat = string.format
 local Tinsert = table.insert
 local Tremove = table.remove
 local TEXgetlccode = tex.getlccode
@@ -101,6 +99,8 @@ local Uchar = unicode.utf8.char
 -- Short-cuts for constants.
 local DISC = node.id('disc')
 local GLYPH = node.id('glyph')
+local WHATSIT = node.id('whatsit')
+local USER_DEFINED = node.subtype('user_defined')
 
 
 
@@ -109,88 +109,188 @@ local err, warn, info, log = luatexbase.provides_module(module)
 
 
 
--- Upvalues used while processing a node list representing a word.
+--- Word property table.
+-- @name word property table
+-- @class table
+-- @field nodes
+-- A sequence of glyph nodes corresponding to the letters of the word.
+-- Note, there may be additional nodes between two glyph nodes in the
+-- original node list.  That is, the assumption <code>nodes[i].next ==
+-- nodes[i+1]</code> doesn't hold generally.<br />
 --
--- Entry at index i is a glyph node representing the i-th letter of a
--- word.
-local tnode
--- Entry at index i is a stack of parent nodes of the i-th node in table
--- `tnode`.  Parent nodes are either discretionary nodes or glyph nodes.
--- The corresponding node in table `tnode` is then part of a
--- `replacement` or `components` sub-list of that parent node.
-local tparent
--- Current stack of parent nodes.  Table `tparent` contains copies of
--- this table.
-local parentstack
--- Spot object used for pattern matching.
-local spot
--- Leading spot min.
-local leading
--- Trailing spot min.
-local trailing
-
-
-
---- Process a node list representing a word.
--- Collects all glyph nodes corresponding to letters in the word,
--- prepares a stack of parent nodes per glyph node and does a pattern
--- matching step for all letters in the word.<br />
---
--- Letters of a word are collected from glyph nodes in the node list.
 -- Discretionary nodes add to the letters of a word with the glyph nodes
 -- from their `replacement` sub-list.  Glyph nodes corresponding to a
 -- ligature add to the letters of a word with the glyph nodes in their
--- `components` sub-list.<br />
+-- `components` sub-list.  This has some implications:<br />
+--
+-- <ul>
+--
+--   <li>While automatic ligatures are replaced by (the nodes of) their
+--   constituting characters, there can be glyph nodes representing
+--   standard ligatures if they are already present in the input
+--   stream.</li>
+--
+-- </ul>
+--
+-- @field parents
+-- A table; the element at index i is either `nil` or a stack (a table)
+-- containing parent nodes of the node at index i in table `nodes`.
+-- Parent nodes are either discretionary nodes or glyph nodes, the
+-- latter corresponding to an automatic ligature (the glyph node is part
+-- of a node list from a `components` field).  An application of this
+-- table is refraining from applying manipulations to nodes that are not
+-- top-level glyph nodes, i.e., when the value in this table is
+-- non-`nil`.
+--
+-- @field levels
+-- A sequence of levels resulting from matching the given spot object
+-- against the letters of the word.  The level at index i in this table
+-- refers to the position between nodes at indices i-1 and i in the
+-- other tables (at word boundaries, only one of those two nodes
+-- actually exists).  Since a word with n letters has n+1 legal level
+-- positions, this table is one item longer than the other two tables.
+-- Odd values refer to valid spots found in the word.
+
+
+
+-- Upvalues used while matching patterns against the words in a node
+-- list.
+--
+-- Current manipulation.
+local manipulation
+-- A sequence of word property tables of the words found in the node
+-- list.
+local words
+-- This table corresponds to field `nodes` in a word property table.
+local word_nodes
+-- This table corresponds to field `parents` in a word property table.
+local word_parents
+-- Current stack of parent nodes.  Table `word_parents` contains copies
+-- of this table.
+local parentstack
+-- Flag.
+local is_within_word
+
+
+
+--- (internal) Initialize a new current word.
+-- Prepare a new word decomposition.
+local function new_current_word()
+   -- Flag current word mode.
+   is_within_word = true
+   -- Initialize some upvalues.
+   word_nodes = {}
+   word_parents = {}
+   parentstack = {}
+   -- Prepare new word decomposition.
+   manipulation.spot:decomposition_start()
+   -- Process leading boundary letter.
+   manipulation.spot:decomposition_advance(manipulation.spot.boundary)
+end
+
+
+
+--- (internal) Finish the current word.
+-- Finish word decomposition.  Calculate spot positions for the word and
+-- store word properties in a property table.
+local function finish_current_word()
+   -- Reset current word flag.
+   is_within_word = false
+   -- Ignore empty words, because we cannot access their nodes.
+   if #word_nodes == 0 then
+      return
+   end
+   -- Last node of word.
+   local last_glyph = word_nodes[#word_nodes]
+   -- Adjust spot mins.  Must be done before finishing decomposition.
+   manipulation.spot:set_spot_mins(last_glyph.left, last_glyph.right)
+   -- Process trailing boundary letter.
+   manipulation.spot:decomposition_advance(manipulation.spot.boundary)
+   -- Finish decomposition.
+   manipulation.spot:decomposition_finish()
+   -- Insert processed word into word table.
+   Tinsert(words, {
+              nodes = word_nodes,
+              parents = word_parents,
+              levels = manipulation.spot.word_levels,
+                  }
+   )
+end
+
+
+
+--- (internal) Scan a node list for words.
+-- Collects all words subject to pattern matching in the node list.
+-- Match a spot object against the letters (glyph nodes) of the words
+-- and store results in property tables.<br />
+--
+-- The current implementation doesn't fully comply with TeX's notion of
+-- 'words subject to hyphenation'.  As an example, words next to an
+-- <code>\hbox</code> aren't hyphenated by TeX and changes in the
+-- language imply word boundaries.  Here's a link to <a
+-- href="https://foundry.supelec.fr/scm/viewvc.php/trunk/source/texk/web2c/luatexdir/lang/texlang.w?root=luatex&view=markup">the
+-- relevant LuaTeX C source code</a>.  See <a
+-- href="http://tug.org/pipermail/tex-hyphen/2014-January/001071.html">this
+-- mail</a> on the tex-hyphen list.
 --
 -- @param head  Node list.
--- @return Several upvalues.
-local function process_list(head)
-   -- Iterate over all nodes in the list.
+-- @return Upvalues.
+local function do_pattern_match_list(head)
    for n in Ntraverse(head) do
       local nid = n.id
-      if nid == GLYPH then
-         -- Retrieve spot mins for current word.
-         if not leading then
-            leading = n.left
-            trailing = n.right
+      if nid == GLYPH or nid == DISC then
+         -- Initialize a new word?
+         if not is_within_word then
+            new_current_word()
          end
-         -- Fundamental glyph or automatic ligature?
-         local components = n.components
-         if not components then
-            -- Fundamental glyph.
-            --
-            -- Add node to table.
-            Tinsert(tnode, n)
-            -- Advance decomposition.
-            spot:decomposition_advance(Uchar(TEXgetlccode(n.char)))
-            -- Add copy of current parent node stack to table.
-            local stack_copy
-            if #parentstack > 0 then
-               stack_copy = {}
-               for i,parent in ipairs(parentstack) do
-                  stack_copy[i] = parent
+         -- Process node.
+         if nid == GLYPH then
+            -- Fundamental glyph or automatic ligature?
+            local components = n.components
+            if not components then
+               -- Fundamental glyph.
+               --
+               -- Add node to table.
+               Tinsert(word_nodes, n)
+               -- Advance decomposition.
+               manipulation.spot:decomposition_advance(Uchar(TEXgetlccode(n.char)))
+               -- Add copy of current parent node stack to table.
+               local stack_copy
+               if #parentstack > 0 then
+                  stack_copy = {}
+                  for i,parent in ipairs(parentstack) do
+                     stack_copy[i] = parent
+                  end
                end
+               word_parents[#word_nodes] = stack_copy
+            else
+               -- Automatic ligature.
+               --
+               -- Update parent node stack and recurse into component
+               -- node list.
+               Tinsert(parentstack, n)
+               do_pattern_match_list(components)
+               Tremove(parentstack)
             end
-            tparent[#tnode] = stack_copy
-         else
-            -- Automatic ligature.
-            --
-            -- Update parent node stack and recurse into component
-            -- node list.
-            Tinsert(parentstack, n)
-            process_list(components)
-            Tremove(parentstack)
+         else-- DISC node
+            -- Does the discretionary contain components belonging to a
+            -- non-hyphenated word?
+            local replace = n.replace
+            if replace then
+               -- Update parent node stack and recurse into replacment
+               -- node list.
+               Tinsert(parentstack, n)
+               do_pattern_match_list(replace)
+               Tremove(parentstack)
+            end
          end
-      elseif nid == DISC then
-         -- Does the discretionary contain components belonging to a
-         -- non-hyphenated word?
-         local replace = n.replace
-         if replace then
-            -- Update parent node stack and recurse into replacment
-            -- node list.
-            Tinsert(parentstack, n)
-            process_list(replace)
-            Tremove(parentstack)
+      elseif (nid == WHATSIT and nsubtype == USER_DEFINED)
+      then
+         -- Ignore node.  Don't change state.
+      else
+         -- Non-word node.
+         if is_within_word then
+            finish_current_word()
          end
       end
    end
@@ -198,66 +298,33 @@ end
 
 
 
---- Find levels in a node list corresponding to a word.
+--- (internal) Match patterns against the words in a node list.
+-- The spot object of the given manipulation table is matched against
+-- all words found in the node list.
 --
--- @param spot_param  A spot object used for pattern matching.
--- @param start  First node belonging to the word.
--- @param stop  Last node belonging to the word.
--- @return Three tables containing information about the word.<br />
---
--- <ol>
---
--- <li>The first table is a sequence of glyph nodes corresponding to the
--- letters of the word.  Note, there may be additional nodes between two
--- glyph nodes in the original node list.  That is, it is wrong to
--- assume <code>t[i].next == t[i+1]</code> etc.</li>
---
--- <li>The second table contains at index <code>i</code> a stack (a
--- table) of parent nodes of the node at index <code>i</code> in the
--- first table.  A node has (nested) parent(s) if it is part of a
--- `component` sub-list of a glyph node or part of a `replace` sub-list
--- of a discretionary node.</li>
---
--- <li>The third table contains levels resulting from pattern matching
--- the word (list) against the given spot object.  An index in this
--- table refers to the position before the entry with the same index in
--- the other tables.  Therefore, this table is one item longer than the
--- other two tables.  Odd values refer to valid spots found in the
--- list/word.</li>
---
--- </ol>
-local function find_levels(spot_param, start, stop)
+-- @param head  A node list.
+-- @param m  Table with properties of the manipulation to apply.
+-- @return A sequence of word property tables.
+-- @see do_pattern_match_list
+local function pattern_match_list(head, m)
    -- Initialize upvalues.
-   spot = spot_param
-   tnode = {}
-   tparent = {}
-   parentstack = {}
-   leading = nil
-   trailing = nil
-   -- Initialize decomposition.
-   local boundary = spot.boundary_letter
-   -- Prepare new word decomposition.
-   spot:decomposition_start()
-   -- Process leading boundary letter.
-   spot:decomposition_advance(boundary)
-   -- Temporarily, make stop node last node in list.
-   local stop_next = stop.next
-   stop.next = nil
-   -- Iterate over letters of word.
-   process_list(start)
-   stop.next = stop_next
-   -- Process trailing boundary letter.
-   spot:decomposition_advance(boundary)
-   -- Adjust spot mins.  Must be done before finishing decomposition.
-   if leading and trailing then
-      spot:set_spot_mins(leading, trailing)
+   manipulation = m
+   words = {}
+   is_within_word = false
+   -- Process list.
+   do_pattern_match_list(head)
+   -- Post-process last word.
+   if is_within_word then
+      finish_current_word()
    end
-   -- Finish decomposition.
-   spot:decomposition_finish()
-   -- Retrieve levels as result of decomposition.
-   local tlevels = spot.word_levels
-   spot.word_levels = nil
-   return tnode, tparent, tlevels
+   -- Remove unneeded references in upvalues.
+   manipulation.spot.word_levels = nil
+   word_nodes = nil
+   word_parents = nil
+   parent_stack = nil
+   local twords = words
+   words = nil
+   return twords
 end
 
 
@@ -275,11 +342,10 @@ local manipulations
 -- @param pattern_name  File name of a pure text UTF-8 pattern file.
 -- @param module_name  File name of a module implementing a particular
 -- node manipulation.  The module must return a function, which is
--- called for every word encountered in the `hyphenate` call-back.
+-- called for every node list encountered in the `hyphenate` call-back.
 -- Arguments are the head of a node list, which was passed to the
--- `hyphenate` call-back, and three tables representing information
--- about a word in that node list.  See function `find_levels` for a
--- description of these tables.
+-- `hyphenate` call-back, and a table containing a sequence of word
+-- property tables.
 -- @param id  A unique identification string associated with a
 -- manipulation.
 -- @see deregister_manipulation
@@ -332,11 +398,10 @@ local function __cb_hyphenate(head)
    lang.hyphenate(head)
    -- Apply additional pattern driven node manipulation.
    for _, manipulation in pairs(manipulations) do
-      -- Iterate over words in node list.
-      for start, stop in nliw.words(head) do
-         local tnode, tparent, tlevels = find_levels(manipulation.spot, start, stop)
-         manipulation.f(head, tnode, tparent, tlevels)
-      end
+      -- Process words in node list.
+      local words = pattern_match_list(head, manipulation)
+      -- Apply user-defined manipulation.
+      manipulation.f(head, words)
    end
    return true
 end

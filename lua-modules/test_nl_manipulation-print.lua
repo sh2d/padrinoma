@@ -7,12 +7,14 @@ local Tconcat = table.concat
 local Tinsert = table.insert
 local Uchar = unicode.utf8.char
 
-local function print_spots(head, tnode, tparent, tlevels)
-   local tword = {}
-   for _, n in ipairs(tnode) do
-      Tinsert(tword, Uchar(n.char))
+local function print_spots(head, twords)
+   for _, word in ipairs(twords) do
+      local chars = {}
+      for _, n in ipairs(word.nodes) do
+         Tinsert(chars, Uchar(n.char))
+      end
+      texio.write(Sformat('[word] %s=%s\n', Tconcat(chars), Tconcat(cls_spot:to_word_with_spots(chars, word.levels, '-'))))
    end
-   texio.write(Sformat('[word] %s=%s\n', Tconcat(tword), Tconcat(cls_spot:to_word_with_spots(tword, tlevels, '-'))))
 end
 
 return print_spots
