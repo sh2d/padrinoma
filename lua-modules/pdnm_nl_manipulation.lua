@@ -273,13 +273,13 @@ local manipulation
 -- call-back.
 --
 -- @param pattern_name  File name of a pure text UTF-8 pattern file.
--- @param module_name File name of a module implementing a particular
--- node manipulation.  The module must provide a function
--- `manipulation`, which is called for every word encountered in the
--- `hyphenate` call-back.  Arguments are the head of a node list, which
--- was passed to the `hyphenate` call-back, and three tables
--- representing information about a word in that node list.  See
--- function `find_levels` for a description of these tables.
+-- @param module_name  File name of a module implementing a particular
+-- node manipulation.  The module must return a function, which is
+-- called for every word encountered in the `hyphenate` call-back.
+-- Arguments are the head of a node list, which was passed to the
+-- `hyphenate` call-back, and three tables representing information
+-- about a word in that node list.  See function `find_levels` for a
+-- description of these tables.
 -- @param id  A unique identification string associated with a
 -- manipulation.
 -- @see deregister_manipulation
@@ -290,11 +290,14 @@ local function register_manipulation(pattern_name, module_name, id)
    local count = spot:read_patterns(fin)
    fin:close()
    info(count .. ' patterns read from file ' .. pattern_name)
-   local mod = require(module_name)
+   local f = require(module_name)
+   if type(f) ~= 'function' then
+      err('Bad manipulation module ' .. module_name .. ': expected return value of type function, got ' .. type(f))
+   end
    if not manipulation[id] then
       manipulation[id] = {
          spot = spot,
-         manipulation = mod.manipulation,
+         f = f,
       }
    end
 end
@@ -332,7 +335,7 @@ local function __cb_hyphenate(head)
       -- Iterate over words in node list.
       for start, stop in nliw.words(head) do
          local tnode, tparent, tlevels = find_levels(m.spot, start, stop)
-         m.manipulation(head, tnode, tparent, tlevels)
+         m.f(head, tnode, tparent, tlevels)
       end
    end
    return true

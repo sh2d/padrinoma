@@ -1,9 +1,6 @@
 -- -*- coding: utf-8 -*-
 local unicode = require('unicode')
 
--- Module table.
-local M = {}
-
 local Ncopy = node.copy
 local Nfree = node.free
 local Ninsert_after = node.insert_after
@@ -67,9 +64,4 @@ local function ck(head, tnode, tparent, tlevels)
    end
 end
 
-local function manipulation(head, tnode, tparent, tlevels)
-   ck(head, tnode, tparent, tlevels)
-end
-M.manipulation = manipulation
-
-return M
+return ck

@@ -2,9 +2,6 @@
 local unicode = require('unicode')
 local cls_spot = require('cls_pdnm_spot')
 
--- Module table.
-local M = {}
-
 local Sformat = string.format
 local Tconcat = table.concat
 local Tinsert = table.insert
@@ -18,9 +15,4 @@ local function print_spots(head, tnode, tparent, tlevels)
    texio.write(Sformat('[word] %s=%s\n', Tconcat(tword), Tconcat(cls_spot:to_word_with_spots(tword, tlevels, '-'))))
 end
 
-local function manipulation(head, tnode, tparent, tlevels)
-   print_spots(head, tnode, tparent, tlevels)
-end
-M.manipulation = manipulation
-
-return M
+return print_spots

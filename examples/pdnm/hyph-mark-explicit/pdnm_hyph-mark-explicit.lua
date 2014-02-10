@@ -1,9 +1,6 @@
 -- -*- coding: utf-8 -*-
 local unicode = require('unicode')
 
--- Module table.
-local M = {}
-
 local Ncopy = node.copy
 local Ninsert_after = node.insert_after
 
@@ -17,9 +14,4 @@ local function insert_hyphen(head, tnode, tparent, tlevels)
    end
 end
 
-local function manipulation(head, tnode, tparent, tlevels)
-   insert_hyphen(head, tnode, tparent, tlevels)
-end
-M.manipulation = manipulation
-
-return M
+return insert_hyphen
