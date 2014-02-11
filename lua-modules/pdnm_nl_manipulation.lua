@@ -248,13 +248,13 @@ end
 local function do_pattern_match_list(head)
    for n in Ntraverse(head) do
       local nid = n.id
-      if nid == GLYPH or nid == DISC then
-         -- Initialize a new word?
-         if not is_within_word then
-            new_current_word()
-         end
-         -- Process node.
-         if nid == GLYPH then
+      if nid == GLYPH then
+         local lc = TEXgetlccode(n.char)
+         if lc > 0 then
+            -- Initialize a new word?
+            if not is_within_word then
+               new_current_word()
+            end
             -- Fundamental glyph or automatic ligature?
             local components = n.components
             if not components then
@@ -263,7 +263,7 @@ local function do_pattern_match_list(head)
                -- Add node to table.
                Tinsert(word_nodes, n)
                -- Advance decomposition.
-               manipulation.spot:decomposition_advance(Uchar(TEXgetlccode(n.char)))
+               manipulation.spot:decomposition_advance(Uchar(lc))
                -- Add copy of current parent node stack to table.
                local stack_copy
                if #parentstack > 0 then
@@ -282,17 +282,22 @@ local function do_pattern_match_list(head)
                do_pattern_match_list(components)
                Tremove(parentstack)
             end
-         else-- DISC node
-            -- Does the discretionary contain components belonging to a
-            -- non-hyphenated word?
-            local replace = n.replace
-            if replace then
-               -- Update parent node stack and recurse into replacment
-               -- node list.
-               Tinsert(parentstack, n)
-               do_pattern_match_list(replace)
-               Tremove(parentstack)
-            end
+         elseif is_within_word then
+            finish_current_word()
+         end
+      elseif nid == DISC then
+         if not is_within_word then
+            new_current_word()
+         end
+         -- Does the discretionary contain components belonging to a
+         -- non-hyphenated word?
+         local replace = n.replace
+         if replace then
+            -- Update parent node stack and recurse into replacment
+            -- node list.
+            Tinsert(parentstack, n)
+            do_pattern_match_list(replace)
+            Tremove(parentstack)
          end
       elseif (nid == WHATSIT and nsubtype == USER_DEFINED)
       then
