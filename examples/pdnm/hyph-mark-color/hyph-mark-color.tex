@@ -3,14 +3,17 @@
 \documentclass{article}
 \usepackage{fontspec}
 \usepackage[latin]{babel}
+\makeatletter
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
 % Parameters are:
+%  * a TeX language (a number),
 %  * name of a pattern file (full file name),
 %  * name of a Lua module implementing a manipulation (base file name),
 %  * a unique ID for the manipulation (an arbitrary, non-nil Lua value).
-  nlm.register_manipulation('hyph-la.pat.txt', 'pdnm_hyph-mark-color', 'mark')
+  nlm.register_manipulation(\the\l@latin, 'hyph-la.pat.txt', 'pdnm_hyph-mark-color', 'mark')
 }
+\makeatother
 \usepackage{lipsum}
 \begin{document}
 \lipsum

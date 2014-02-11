@@ -4,10 +4,12 @@
 \usepackage{fontspec}
 \setmainfont{TeX Gyre Pagella}
 \usepackage[UKenglish, german]{babel}
+\makeatletter
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
-  nlm.register_manipulation('hyph-de-1901.pat.txt', 'test_nl_manipulation-print', 'test-print')
+  nlm.register_manipulation(\the\l@german, 'hyph-de-1901.pat.txt', 'test_nl_manipulation-print', 'test-print')
 }
+\makeatother
 \begin{document}
 \hyphenation{
   ba{k-}{k}{ck}en

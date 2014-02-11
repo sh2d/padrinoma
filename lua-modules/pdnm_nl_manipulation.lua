@@ -204,6 +204,10 @@ local function finish_current_word()
    end
    -- Last node of word.
    local last_glyph = word_nodes[#word_nodes]
+   -- Is this a word of the current pattern language?
+   if last_glyph.lang ~= manipulation.language then
+      return
+   end
    -- Adjust spot mins.  Must be done before finishing decomposition.
    manipulation.spot:set_spot_mins(last_glyph.left, last_glyph.right)
    -- Process trailing boundary letter.
@@ -354,6 +358,7 @@ local manipulations
 -- All manipulations registered are executed in the `hyphenate`
 -- call-back.
 --
+-- @param language  A language (number) patterns are associated with.
 -- @param pattern_name  File name of a pure text UTF-8 pattern file.
 -- @param module_name  File name of a module implementing a particular
 -- node manipulation.  The module must return a function, which is
@@ -367,7 +372,7 @@ local manipulations
 -- spots should be written to a file at the end of the TeX run for
 -- debugging purposes.  By default, debugging is active.
 -- @see deregister_manipulation
-local function register_manipulation(pattern_name, module_name, id, is_not_debug_spots)
+local function register_manipulation(language, pattern_name, module_name, id, is_not_debug_spots)
    local spot = cls_spot:new()
    local fin = kpse.find_file(pattern_name)
    fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
@@ -380,6 +385,7 @@ local function register_manipulation(pattern_name, module_name, id, is_not_debug
    end
    if not manipulations[id] then
       manipulations[id] = {
+         language = language,
          spot = spot,
          f = f,
          is_debug_spots = not is_not_debug_spots,

@@ -4,14 +4,17 @@
 \usepackage{fontspec}
 \usepackage{multicol}
 \usepackage[main=english, german]{babel}
+\makeatletter
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
 % Parameters are:
+%  * a TeX language (a number),
 %  * name of a pattern file (full file name),
 %  * name of a Lua module implementing a manipulation (base file name),
 %  * a unique ID for the manipulation (an arbitrary, non-nil Lua value).
-  nlm.register_manipulation('nstd-hyph-de-1901.pat.txt', 'pdnm_nstd-hyph-de-1901', 'nstd-hyph-de-1901')
+  nlm.register_manipulation(\the\l@german, 'nstd-hyph-de-1901.pat.txt', 'pdnm_nstd-hyph-de-1901', 'nstd-hyph-de-1901')
 }
+\makeatother
 \begin{document}
 
 \section{Automatic non-standard hyphenation with Lua\TeX}
