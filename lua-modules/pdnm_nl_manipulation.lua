@@ -89,8 +89,10 @@ local M = {}
 
 -- Short-cuts.
 local Ntraverse = node.traverse
+local Tconcat = table.concat
 local Tinsert = table.insert
 local Tremove = table.remove
+local Tsort = table.sort
 local TEXgetlccode = tex.getlccode
 local Uchar = unicode.utf8.char
 
@@ -215,6 +217,14 @@ local function finish_current_word()
               levels = manipulation.spot.word_levels,
                   }
    )
+   -- Debug spots?
+   if manipulation.is_debug_spots then
+      local chars = {}
+      for _, n in ipairs(word_nodes) do
+         Tinsert(chars, Uchar(n.char))
+      end
+      manipulation.words_with_spots[Tconcat(cls_spot:to_word_with_spots(chars, manipulation.spot.word_levels, '-'))] = true
+   end
 end
 
 
@@ -348,8 +358,11 @@ local manipulations
 -- property tables.
 -- @param id  A unique identification string associated with a
 -- manipulation.
+-- @param is_not_debug_spots  Flag determining if a list of words with
+-- spots should be written to a file at the end of the TeX run for
+-- debugging purposes.  By default, debugging is active.
 -- @see deregister_manipulation
-local function register_manipulation(pattern_name, module_name, id)
+local function register_manipulation(pattern_name, module_name, id, is_not_debug_spots)
    local spot = cls_spot:new()
    local fin = kpse.find_file(pattern_name)
    fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
@@ -364,6 +377,9 @@ local function register_manipulation(pattern_name, module_name, id)
       manipulations[id] = {
          spot = spot,
          f = f,
+         is_debug_spots = not is_not_debug_spots,
+         words_with_spots = {},
+         pattern_name = pattern_name,
       }
    end
 end
@@ -408,12 +424,38 @@ end
 
 
 
+--- (internal) Write a list of words with spots to a file.
+-- Write all words associated with a pattern set to a file.  File name
+-- is the pattern file name plus the extension <code>.spots</code>.
+local function __cb_write_words()
+   for _, manipulation in pairs(manipulations) do
+      if manipulation.is_debug_spots then
+         -- Sort words.
+         local a = {}
+         for k,_ in pairs(manipulation.words_with_spots) do
+            Tinsert(a, k)
+         end
+         Tsort(a)
+         -- Write words to file.
+         local fout = assert(io.open(manipulation.pattern_name .. '.spots', 'w'))
+         for _,v in ipairs(a) do
+            fout:write(v, '\n')
+         end
+         fout:close()
+      end
+   end
+end
+
+
+
 --- Module initialization.
 local function __init()
    -- Initialize manipulation table.
    manipulations = {}
    -- Register hyphenate call-back.
    luatexbase.add_to_callback('hyphenate', __cb_hyphenate, 'pdnm_hyphenate')
+   -- Register stop run call-back for spot debugging output.
+   luatexbase.add_to_callback('stop_run', __cb_write_words, 'pdnm_debug_spots')
 end
 
 

@@ -85,11 +85,16 @@ dedicated non-standard hyphenation patterns.  Patterns are read from
 file \verb+pdnm_nstd-hyph-de-1901.pat.txt+.  A list of fully hyphenated
 words can be found in the \verb+log+ file.
 
-The careful reader will find some wrong non-standard hyphenations, such
-as \emph{Rebek-ka} (non-standard hyphenation is discouraged within
-names).  These are due to still imperfect non-standard hyphenation
-patterns, which are subject to further improvements.  If you find
-examples of wrong German non-standard hyphenation, please send them to
+For debugging purposes, a list of all words with non-standard
+hyphenation patterns only applied is written to a file with the name of
+the file patterns were read from augmented by the extension
+\verb+.spots+.  A hyphen indicates where non-standard hyphenation is to
+be applied within a word, like \verb+Dac-kel+ or \verb+Schif-fahrt+.
+Wrong matches, such as \verb+Rebec-ka+ (non-standard hyphenation is
+discouraged within names) or \verb+Schlep-panker+, are due to still
+imperfect non-standard hyphenation patterns.  Patterns are subject to
+further improvements.  If you find examples of wrong German non-standard
+hyphenation with the current pattern set, please send them to
 \verb+trennmuster@dante.de+.
 
 % # is used in Lua code.
