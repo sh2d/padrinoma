@@ -1,0 +1,76 @@
+%% -*- coding: utf-8 -*-
+%%
+%% Copyright 2014 Stephan Hennig
+%%
+%% This file is part of Padrinoma.
+%%
+%% Padrinoma is free software: you can redistribute it and/or modify it
+%% under the terms of the GNU Affero General Public License as published
+%% by the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%%
+%% Padrinoma is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%% Affero General Public License for more details.
+%%
+%% You should have received a copy of the GNU Affero General Public
+%% License along with Padrinoma.  If not, see
+%% <http://www.gnu.org/licenses/>.
+%%
+%% Diese Datei ist Teil von Padrinoma.
+%%
+%% Padrinoma ist Freie Software: Sie können es unter den Bedingungen der
+%% GNU Affero General Public License, wie von der Free Software
+%% Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder
+%% späteren veröffentlichten Version, weiterverbreiten und/oder
+%% modifizieren.
+%%
+%% Padrinoma wird in der Hoffnung, dass es nützlich sein wird, aber OHNE
+%% JEDE GEWÄHELEISTUNG, bereitgestellt; sogar ohne die implizite
+%% Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN
+%% ZWECK.  Siehe die GNU Affero General Public License für weitere
+%% Details.
+%%
+%% Sie sollten eine Kopie der GNU Affero General Public License zusammen
+%% mit diesem Programm erhalten haben. Wenn nicht, siehe
+%% <http://www.gnu.org/licenses/>.
+%%
+\ProvidesPackage{padrinoma}
+  [2014/02/19 v0.1 Pattern driven node manipulation in LuaTeX (SH)]
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+% Test for the LuaTeX engine.
+\RequirePackage{ifluatex}
+\ifluatex
+\else
+\PackageError{padrinoma}{LuaTeX engine required}{You could try with the
+  `lualatex' command.}
+\fi
+% Lua module version management.
+\RequirePackage{luatexbase-modutils}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Load padrinoma manipulation module.
+\directlua name {padrinoma}{
+  % Reserve a global variable for our namespace.
+  padrinoma = {}
+  padrinoma.nlm = require('pdnm_nl_manipulation')
+}
+% We use expl3 syntax.
+\RequirePackage{xparse}
+% Provide command for registering a manipulation.
+% Parameters are:
+%  * a TeX language identifier,
+%  * name of a pattern file (full file name),
+%  * name of a Lua module implementing a manipulation (base file name),
+%  * a unique ID for the manipulation (interpreted as a Lua string).
+\NewDocumentCommand\PadrinomaRegisterManipulation{m m m m}{%
+  \directlua{
+    padrinoma.nlm.register_manipulation(
+      \the\csname l@#1\endcsname,
+      '\luaescapestring{#2}',
+      '\luaescapestring{#3}',
+      '\luaescapestring{#4}'
+    )
+  }%
+}
