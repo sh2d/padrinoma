@@ -6,7 +6,11 @@
 \usepackage[main=german, english]{babel}
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
-  nlm.register_manipulation('nstd-hyph-de-1901.pat.txt', 'pdnm_nstd-hyph-de-1901')
+% Parameters are:
+%  * name of a pattern file (full file name),
+%  * name of a Lua module implementing a manipulation (base file name),
+%  * a unique ID for the manipulation (an arbitrary, non-nil Lua value).
+  nlm.register_manipulation('nstd-hyph-de-1901.pat.txt', 'pdnm_nstd-hyph-de-1901', 'nstd-hyph-de-1901')
 }
 \begin{document}
 

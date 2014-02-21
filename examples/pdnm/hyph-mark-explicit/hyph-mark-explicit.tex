@@ -6,7 +6,11 @@
 \usepackage[latin]{babel}
 \directlua{
   local nlm = require('pdnm_nl_manipulation')
-  nlm.register_manipulation('hyph-la.pat.txt', 'pdnm_hyph-mark-explicit')
+% Parameters are:
+%  * name of a pattern file (full file name),
+%  * name of a Lua module implementing a manipulation (base file name),
+%  * a unique ID for the manipulation (an arbitrary, non-nil Lua value).
+  nlm.register_manipulation('hyph-la.pat.txt', 'pdnm_hyph-mark-explicit', 'mark')
 }
 \usepackage{lipsum}
 \begin{document}

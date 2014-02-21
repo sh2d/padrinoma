@@ -280,7 +280,10 @@ local manipulation
 -- was passed to the `hyphenate` call-back, and three tables
 -- representing information about a word in that node list.  See
 -- function `find_levels` for a description of these tables.
-local function register_manipulation(pattern_name, module_name)
+-- @param id  A unique identification string associated with a
+-- manipulation.
+-- @see deregister_manipulation
+local function register_manipulation(pattern_name, module_name, id)
    local spot = cls_spot:new()
    local fin = kpse.find_file(pattern_name)
    fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
@@ -288,8 +291,11 @@ local function register_manipulation(pattern_name, module_name)
    fin:close()
    info(count .. ' patterns read from file ' .. pattern_name)
    local mod = require(module_name)
-   if not manipulation[module_name] then
-      manipulation[module_name] = { spot = spot, manipulation = mod.manipulation }
+   if not manipulation[id] then
+      manipulation[id] = {
+         spot = spot,
+         manipulation = mod.manipulation,
+      }
    end
 end
 M.register_manipulation = register_manipulation
@@ -299,12 +305,14 @@ M.register_manipulation = register_manipulation
 --- De-register a pattern driven node manipulation.
 -- Manipulations are  identified by the ID given during registration.
 --
--- @param module_name  File name of a manipulation module.
+-- @param id  A unique identification string associated with the
+-- manipulation to remove.
 -- @return `true`, if the module was registered, else `false`.
-local function deregister_manipulation(module_name)
-   local is_active = manipulation[module_name]
+-- @see register_manipulation
+local function deregister_manipulation(id)
+   local is_active = manipulation[id]
    if is_active then
-      manipulation[module_name] = nil
+      manipulation[id] = nil
    end
    return is_active and true or false
 end
