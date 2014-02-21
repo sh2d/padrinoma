@@ -262,9 +262,9 @@ end
 
 
 
--- Stores manipulations.  Maps strings (ids) to a table containing
+-- Table of manipulations.  Maps strings (ids) to a table containing
 -- information about a manipulation.
-local manipulation
+local manipulations
 
 
 
@@ -294,8 +294,8 @@ local function register_manipulation(pattern_name, module_name, id)
    if type(f) ~= 'function' then
       err('Bad manipulation module ' .. module_name .. ': expected return value of type function, got ' .. type(f))
    end
-   if not manipulation[id] then
-      manipulation[id] = {
+   if not manipulations[id] then
+      manipulations[id] = {
          spot = spot,
          f = f,
       }
@@ -313,9 +313,9 @@ M.register_manipulation = register_manipulation
 -- @return `true`, if the module was registered, else `false`.
 -- @see register_manipulation
 local function deregister_manipulation(id)
-   local is_active = manipulation[id]
+   local is_active = manipulations[id]
    if is_active then
-      manipulation[id] = nil
+      manipulations[id] = nil
    end
    return is_active and true or false
 end
@@ -331,11 +331,11 @@ local function __cb_hyphenate(head)
    -- Apply regular hyphenation.
    lang.hyphenate(head)
    -- Apply additional pattern driven node manipulation.
-   for _, m in pairs(manipulation) do
+   for _, manipulation in pairs(manipulations) do
       -- Iterate over words in node list.
       for start, stop in nliw.words(head) do
-         local tnode, tparent, tlevels = find_levels(m.spot, start, stop)
-         m.f(head, tnode, tparent, tlevels)
+         local tnode, tparent, tlevels = find_levels(manipulation.spot, start, stop)
+         manipulation.f(head, tnode, tparent, tlevels)
       end
    end
    return true
@@ -346,7 +346,7 @@ end
 --- Module initialization.
 local function __init()
    -- Initialize manipulation table.
-   manipulation = {}
+   manipulations = {}
    -- Register hyphenate call-back.
    luatexbase.add_to_callback('hyphenate', __cb_hyphenate, 'pdnm_hyphenate')
 end
