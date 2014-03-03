@@ -134,15 +134,25 @@ local err, warn, info, log = luatexbase.provides_module(module)
 --
 -- </ul>
 --
+-- @field exhyphenchars
+-- A sequence; values indicate character positions that equal the value
+-- of <code>\exhyphenchar</code>.  TeX normally doesn't insert
+-- discretionaries in words containing explicit hyphens.  Looking at
+-- this field, one can imitate that behaviour.  If a word contains no
+-- explicit hyphens, this field is set to the value `nil` instead of an
+-- empty table.
+--
 -- @field parents
--- A table; the element at index i is either `nil` or a stack (a table)
--- containing parent nodes of the node at index i in table `nodes`.
--- Parent nodes are either discretionary nodes or glyph nodes, the
--- latter corresponding to an automatic ligature (the glyph node is part
--- of a node list from a `components` field).  An application of this
--- table is refraining from applying manipulations to nodes that are not
--- top-level glyph nodes, i.e., when the value in this table is
--- non-`nil`.
+-- A table; the element at index i refers to the node at index i in
+-- table `nodes` and is either `nil` or a stack (a table) containing
+-- references to parent nodes.  Parent nodes are either discretionary
+-- nodes or glyph nodes, the latter corresponding to an automatic
+-- ligature (the glyph node is part of a node list from a `components`
+-- field).  An application of this table is refraining from applying
+-- manipulations to nodes that are not top-level glyph nodes, i.e., when
+-- the value in this table is non-`nil`.  If a word contains only
+-- top-level glyph nodes, this field is set to the value `nil` instead
+-- of an empty table.
 --
 -- @field levels
 -- A sequence of levels resulting from matching the given spot object
@@ -165,6 +175,9 @@ local manipulation
 local words
 -- This table corresponds to field `nodes` in a word property table.
 local word_nodes
+-- This table corresponds to field `exhyphenchars` in a word property
+-- table.
+local word_exhyphenchars
 -- This table corresponds to field `parents` in a word property table.
 local word_parents
 -- Current stack of parent nodes.  Table `word_parents` contains copies
@@ -182,6 +195,7 @@ local function new_current_word()
    is_within_word = true
    -- Initialize some upvalues.
    word_nodes = {}
+   word_exhyphenchars = nil
    word_parents = {}
    parentstack = {}
    -- Prepare new word decomposition.
@@ -217,6 +231,7 @@ local function finish_current_word()
    -- Insert processed word into word table.
    Tinsert(words, {
               nodes = word_nodes,
+              exhyphenchars = word_exhyphenchars,
               parents = word_parents,
               levels = manipulation.spot.word_levels,
                   }
@@ -266,6 +281,10 @@ local function do_pattern_match_list(head)
                --
                -- Add node to table.
                Tinsert(word_nodes, n)
+               if n.char == tex.exhyphenchar then
+                  word_exhyphenchars = word_exhyphenchars or {}
+                  Tinsert(word_exhyphenchars, #word_nodes)
+               end
                -- Advance decomposition.
                manipulation.spot:decomposition_advance(Uchar(lc))
                -- Add copy of current parent node stack to table.
@@ -339,6 +358,7 @@ local function pattern_match_list(head, m)
    -- Remove unneeded references in upvalues.
    manipulation.spot.word_levels = nil
    word_nodes = nil
+   word_exhyphenchars = nil
    word_parents = nil
    parent_stack = nil
    local twords = words

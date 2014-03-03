@@ -13,6 +13,13 @@ local function print_spots(head, twords)
       for _, n in ipairs(word.nodes) do
          Tinsert(chars, Uchar(n.char))
       end
+      -- Invalidate all spots found, if word already contains an
+      -- explicit hyphen.
+      if word.exhyphenchars then
+         for i,_ in ipairs(word.levels) do
+            word.levels[i] = 0
+         end
+      end
       texio.write(Sformat('[word] %s=%s\n', Tconcat(chars), Tconcat(cls_spot:to_word_with_spots(chars, word.levels, '-'))))
    end
 end
