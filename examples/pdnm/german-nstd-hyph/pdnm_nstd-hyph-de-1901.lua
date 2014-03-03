@@ -59,33 +59,36 @@ end
 -- @param twords  A sequence of word property tables.
 local function nstd_hyph(head, twords)
    for _, word in ipairs(twords) do
-      for pos, level in ipairs(word.levels) do
-         -- Spot with surrounding top-level glyph nodes?
-         if (level % 2 == 1) and not word.parents[pos-1] and not word.parents[pos] then
-            local first = word.nodes[pos-1]
-            local second = word.nodes[pos]
-            -- Create discretionary node.
-            local d = Nnew(DISC, 0)
-            d.attr = first.attr
-            -- Sub-list .pre:
-            if Uchar(TEXgetlccode(first.char)) == 'c' then
-               d.pre = get_pre_of_ck(head, first, second)
-            else
-               d.pre = get_pre_of_triple_consonant(head, first, second)
+      -- Only process words not containing explicit hyphens.
+      if not word.exhyphenchars then
+         for pos, level in ipairs(word.levels) do
+            -- Spot with surrounding top-level glyph nodes?
+            if (level % 2 == 1) and not word.parents[pos-1] and not word.parents[pos] then
+               local first = word.nodes[pos-1]
+               local second = word.nodes[pos]
+               -- Create discretionary node.
+               local d = Nnew(DISC, 0)
+               d.attr = first.attr
+               -- Sub-list .pre:
+               if Uchar(TEXgetlccode(first.char)) == 'c' then
+                  d.pre = get_pre_of_ck(head, first, second)
+               else
+                  d.pre = get_pre_of_triple_consonant(head, first, second)
+               end
+               local prefirst = first.prev
+               local presecond = second.prev
+               -- Sub-list .replace:
+               --
+               -- Unlink list (first)--(second.prev).
+               prefirst.next = second
+               second.prev = prefirst
+               -- And put it into .replace field.
+               first.prev = nil
+               presecond.next = nil
+               d.replace = first
+               -- Insert discretionary before second node.
+               Ninsert_before(head, second, d)
             end
-            local prefirst = first.prev
-            local presecond = second.prev
-            -- Sub-list .replace:
-            --
-            -- Unlink list (first)--(second.prev).
-            prefirst.next = second
-            second.prev = prefirst
-            -- And put it into .replace field.
-            first.prev = nil
-            presecond.next = nil
-            d.replace = first
-            -- Insert discretionary before second node.
-            Ninsert_before(head, second, d)
          end
       end
    end
