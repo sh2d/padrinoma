@@ -19,10 +19,11 @@ local function debug_spots(s)
    local word = p:to_word(Ulower(s))
    local levels = p:find_levels(word)
    print(Tconcat(p:to_word_with_levels(word, levels)))
-   print(Tconcat(p:to_word_with_spots(word, levels, '-')))
+   print(Tconcat(p:to_word_with_spots(word, levels, '-', '=')))
 end
 
 debug_spots('Zuckerbäcker')
+debug_spots('Zucker-Bäcker')
 debug_spots('Häscher')
 debug_spots('Häschen')
 debug_spots('Häuschen')

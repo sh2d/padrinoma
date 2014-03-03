@@ -273,13 +273,18 @@ M.to_word_with_levels = to_word_with_levels
 -- @param self  Callee reference.
 -- @param word  A word in table representation.
 -- @param levels  A level table.
--- @parem spot_letter  A letter representing a spot.
+-- @param spot_letter  A letter representing a spot.
+-- @param explicit_spot_letter  Letters equal to `spot_letter` in input
+-- are transformed to this letter in output.
 -- @return Table of letters and spots.
-local function to_word_with_spots(self, word, levels, spot_letter)
+local function to_word_with_spots(self, word, levels, spot_letter, explicit_spot_letter)
    assert(type(word) == 'table','Word must be in table representation. Got ' .. type(word) .. ': ' .. tostring(word))
    local h = {}
    for pos, letter in ipairs(word) do
       if levels[pos] % 2 == 1 then Tinsert(h, spot_letter) end
+      if letter == spot_letter then
+         letter = explicit_spot_letter
+      end
       Tinsert(h, letter)
    end
    if levels[#levels] % 2 == 1 then Tinsert(h, spot_letter) end

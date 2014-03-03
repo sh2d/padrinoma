@@ -242,7 +242,7 @@ local function finish_current_word()
       for _, n in ipairs(word_nodes) do
          Tinsert(chars, Uchar(n.char))
       end
-      manipulation.words_with_spots[Tconcat(cls_spot:to_word_with_spots(chars, manipulation.spot.word_levels, '-'))] = true
+      manipulation.words_with_spots[Tconcat(cls_spot:to_word_with_spots(chars, manipulation.spot.word_levels, '-', '='))] = true
    end
 end
 
