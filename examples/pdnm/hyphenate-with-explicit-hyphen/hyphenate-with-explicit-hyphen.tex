@@ -1,0 +1,28 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage[main=english, ngerman]{babel}
+\usepackage{padrinoma}
+% Parameters are:
+%  * a TeX language identifier,
+%  * name of a pattern file (full file name),
+%  * name of a Lua module implementing a manipulation (base file name),
+%  * a unique ID for the manipulation (interpreted as a Lua string).
+\PadrinomaRegisterManipulation{ngerman}{hyph-de-1901.pat.txt}{pdnm_hyphenate-with-explicit-hyphen}{explicit-hyphen}
+\begin{document}
+See \texttt{log} file for a list of hyphenated German words containing
+explicit (discretionary) hyphens.  Note, for words containing a
+discretionary hyphen, leading and trailing hyphen minima (per word
+particle) have intentionally been set to a high value of~8.
+
+\begin{otherlanguage}{ngerman}
+\showhyphens{
+  Autobahn
+  Notaus-Schalter
+  Arbeiter-Unfallversicherung
+  Zwei-Drittel-Abstimmungsmehrheit
+}
+\end{otherlanguage}
+\end{document}

@@ -19,6 +19,12 @@ Contains a LuaLaTeX document where all valid hyphenation points are
 marked by a special character.
 
 
+# `hyphenate-with-explicit-hyphen/`
+
+Contains a LuaLaTeX document showing hyphenation of words containing an
+explicit hyphen (a discretionary hyphen).
+
+
 
 <!--
 %%% Local Variables: 
