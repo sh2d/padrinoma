@@ -98,6 +98,8 @@ local M = cls_pattern:new()
 
 
 -- Short-cuts.
+local Mmax = math.max
+local Mmin = math.min
 local Tconcat = table.concat
 local Tinsert = table.insert
 local Tremove = table.remove
@@ -192,10 +194,10 @@ local function cb_pdnm_pattern__decomposition_finish(self)
    Tremove(word_levels)
    word_levels[0] = nil
    -- Suppress spots near word boundaries.
-   for pos = 1,self.leading_spot_min do
+   for pos = 1,Mmin(self.leading_spot_min, #word_levels) do
       word_levels[pos] = 0
    end
-   for pos = #word_levels, #word_levels - self.trailing_spot_min + 1, -1  do
+   for pos = #word_levels, Mmax(#word_levels - self.trailing_spot_min + 1, 1), -1  do
       word_levels[pos] = 0
    end
 end
