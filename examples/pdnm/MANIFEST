@@ -2,27 +2,27 @@ This directory contains some pattern driven node list manipulation
 examples.  Documentation may be terse or non-existent.
 
 
-# `german-nstd-hyph/`
+# `hyphenate-with-explicit-hyphen/`
 
-Contains a LuaLaTeX document showing German non-standard hyphenation.
+Contains a LuaLaTeX document showing hyphenation of words containing an
+explicit hyphen (a discretionary hyphen).
 
 
-# `hyph-mark-color/`
+# `mark-hyphenation-points-by-color/`
 
 Contains a LuaLaTeX document where letters surrounding valid hyphenation
 points are coloured.
 
 
-# `hyph-mark-explicit/`
+# `mark-hyphenation-points-by-glyph/`
 
 Contains a LuaLaTeX document where all valid hyphenation points are
 marked by a special character.
 
 
-# `hyphenate-with-explicit-hyphen/`
+# `non-standard-hyphenation-german/`
 
-Contains a LuaLaTeX document showing hyphenation of words containing an
-explicit hyphen (a discretionary hyphen).
+Contains a LuaLaTeX document showing German non-standard hyphenation.
 
 
 
