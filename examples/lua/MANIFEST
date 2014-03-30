@@ -1,0 +1,49 @@
+This directory contains some (academic) example applications, which make
+use of certain Lua classes or modules in the padrinoma repository.  Try
+to run the examples as
+
+    texlua <example file>.lua --help
+
+Example code documentation may be terse or non-existent.  Developers
+should refer to API documentation of Lua (class) modules, which is
+available in [LuaDoc][luadoc] format.
+
+[luadoc]: http://keplerproject.github.io/luadoc/
+
+
+# `active_tries/`
+
+Reads-in a list of strings and decomposes them using Liang patterns.
+Statistical data is collected about the number of active tries per
+letter position.  Diagrams are created for all string lengths as well as
+the complete list.
+
+This is an application of intercepting the process of string
+decomposition in class `cls_pdnm_pattern`.
+
+
+# `debug_spots/`
+
+Demonstrates the process of calculating spots within strings using Liang
+patterns.
+
+This is an application of intercepting the process of string
+decomposition in class `cls_pdnm_spot`.
+
+
+# `which_strings/`
+
+Reads-in a list of strings and decomposes them using Liang patterns.
+For every pattern, all matching strings are recorded.
+
+This is an application of intercepting the process of string
+decomposition in class `cls_pdnm_pattern`.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->

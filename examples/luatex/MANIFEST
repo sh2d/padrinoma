@@ -1,11 +1,18 @@
-This directory contains some pattern driven node list manipulation
-examples.  Documentation may be terse or non-existent.
+This directory contains some Lua(La)TeX example documents demonstrating
+how to apply a particular pattern driven node list manipulation.
+
+Example code documentation may be terse or non-existent.  Developers
+should refer to API documentation of Lua (class) modules, which is
+available in [LuaDoc][luadoc] format.
+
+[luadoc]: http://keplerproject.github.io/luadoc/
 
 
 # `hyphenate-with-explicit-hyphen/`
 
 Contains a LuaLaTeX document showing hyphenation of words containing an
-explicit hyphen (a discretionary hyphen).
+explicit hyphen (a discretionary hyphen).  Standard (Lua)TeX refrains
+from inserting additional discretionaries in such words.
 
 
 # `mark-hyphenation-points-by-color/`

@@ -1,32 +1,27 @@
-This directory contains some (mostly simple) test applications.
-Documentation may be terse or non-existent.
+These sub-directories contain (academic) examples demonstrating
+applications of various files developed in the padrinoma repository
+(classes, modules, package).
 
-# `active_tries/`
+Example code documentation may be terse or non-existent.  Developers
+should refer to API documentation of Lua (class) modules, which is
+available in [LuaDoc][luadoc] format.
 
-An application of intercepting the process of string decomposition.
-Reads-in a list of strings and decomposes them using Liang patterns.
-Statistical data is collected about the number of active tries per
-letter position.  Diagrams are created for all string lengths as well as
-the complete list.
-
-
-# `pdnm/`
-
-Examples of pattern driven node list manipulation.
+[luadoc]: http://keplerproject.github.io/luadoc/
 
 
-# `debug_spots/`
+# `lua/`
 
-An application of intercepting the process of string decomposition.
-Shows the process of calculating spots within strings using Liang
-patterns.
+This directory contains some (academic) example applications, which make
+use of certain Lua classes or modules in the padrinoma repository.  Try
+to run the examples as
+
+    texlua <example file>.lua --help
 
 
-# `which_strings/`
+# `luatex/`
 
-An application of intercepting the process of string decomposition.
-Reads-in a list of strings and decomposes them using Liang patterns.
-For every pattern, all matching strings are recorded.
+This directory contains some Lua(La)TeX example documents demonstrating
+how to apply a particular pattern driven node list manipulation.
 
 
 
