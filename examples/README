@@ -1,0 +1,31 @@
+# Installation
+
+To run the texlua and LuaLaTeX examples, some files from the repository
+need to be copied to a local TEXMF tree:
+
+    lua-classes/cls_pdnm_*.lua  =>  TEXMFHOME/scripts/padrinoma/
+    lua-modules/pdnm_*.lua      =>  TEXMFHOME/scripts/padrinoma/
+    luatex/*.sty                =>  TEXMFHOME/tex/luatex/padrinoma/
+
+Finally, the TeX distribution's file name database needs to be updated
+by running (with administrator privileges) a command, such as
+
+    mktexlsr
+
+After that, you're ready to run the examples.
+
+
+# Updates
+
+If you observe strange errors while running the examples, e.g., after
+pulling from the remote repository, remember to update the files in the
+local TEXMF tree.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->
