@@ -10,9 +10,9 @@ available in [LuaDoc][luadoc] format.
 
 # `hyphenate-with-explicit-hyphen/`
 
-Contains a LuaLaTeX document showing hyphenation of words containing an
-explicit hyphen (a discretionary hyphen).  Standard (Lua)TeX refrains
-from inserting additional discretionaries in such words.
+Contains a LuaLaTeX document showing hyphenation of words containing
+explicit hyphens.  Standard (Lua)TeX refrains from inserting additional
+discretionary hyphens in such words.
 
 
 # `mark-hyphenation-points-by-color/`
