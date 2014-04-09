@@ -22,7 +22,7 @@ This is an application of intercepting the process of string
 decomposition in class `cls_pdnm_pattern`.
 
 
-# `debug_spots/`
+# `patternize/`
 
 Demonstrates the process of calculating spots within strings using Liang
 patterns.
