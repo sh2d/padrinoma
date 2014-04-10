@@ -13,10 +13,10 @@ available in [LuaDoc][luadoc] format.
 
 # `active_tries/`
 
-Reads-in a list of strings and decomposes them using Liang patterns.
-Statistical data is collected about the number of active tries per
-letter position.  Diagrams are created for all string lengths as well as
-the complete list.
+Reads UTF-8 encoded strings from standard input and decomposes them into
+Liang patterns.  Statistical data is collected about the number of
+active tries per letter position.  Diagrams are created for all string
+lengths as well as the complete list.
 
 This is an application of intercepting the process of string
 decomposition in class `cls_pdnm_pattern`.
@@ -24,8 +24,8 @@ decomposition in class `cls_pdnm_pattern`.
 
 # `patternize/`
 
-Demonstrates the process of calculating spots within strings using Liang
-patterns.
+Reads UTF-8 encoded strings from standard input and decomposes them into
+Liang patterns.  Decomposition results are visualized.
 
 This is an application of intercepting the process of string
 decomposition in class `cls_pdnm_spot`.
@@ -33,8 +33,8 @@ decomposition in class `cls_pdnm_spot`.
 
 # `which_strings/`
 
-Reads-in a list of strings and decomposes them using Liang patterns.
-For every pattern, all matching strings are recorded.
+Reads UTF-8 encoded strings from standard input and decomposes them into
+Liang patterns.  For every pattern, all matching strings are recorded.
 
 This is an application of intercepting the process of string
 decomposition in class `cls_pdnm_pattern`.

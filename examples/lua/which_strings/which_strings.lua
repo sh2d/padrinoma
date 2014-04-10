@@ -13,17 +13,18 @@ local Ulower = unicode.utf8.lower
 -- Output help message.
 local function usage()
    local progname = arg[0]
-   print('usage: texlua ' .. progname .. [[
- [-h] [-b char] [-p file]
-options:
- --help       -h   print help
- --bletter    -b   set boundary letter (default is a FULL STOP '.')
- --patterns   -p   set pattern file to use for decomposition
-              -T   equivalent to -p hyph-de-1901.pat.txt
-              -S   equivalent to -p hyph-de-ch-1901.pat.txt
-              -R   equivalent to -p hyph-de-1996.pat.txt
-
-Reads-in a list of strings and decomposes them using Liang patterns. For every pattern, all matching strings are recorded. Strings are read from standard input and must be in the UTF-8 encoding. A pattern file specified via -p must contain pure text patterns in the UTF-8 encoding. Pattern files are searched using the kpse library. Using a boundary letter different to the one used during pattern creation can lead to wrong results.]]
+   print('usage: texlua ' .. progname .. [[ [options]
+Reads UTF-8 encoded strings from standard input and decomposes them into Liang patterns. For every pattern, all matching strings are recorded. Options:
+long        short  arg   description
+--help      -h           print help
+--bletter   -b     char  set boundary letter (default is a FULL STOP '.')
+--patterns  -p     file  set pattern file to use for decomposition
+                         File is searched using the kpse library.
+                         Patterns must be pure text in UTF-8 encoding.
+            -T           equivalent to -p hyph-de-1901.pat.txt
+            -S           equivalent to -p hyph-de-ch-1901.pat.txt
+            -R           equivalent to -p hyph-de-1996.pat.txt
+]]
    )
 end
 

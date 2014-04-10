@@ -56,21 +56,22 @@ local Urep = unicode.utf8.rep
 -- Output help message.
 local function help()
    local progname = arg[0]
-   print('usage: texlua ' .. progname .. [[
- [-h] [-b char] [-l num] [-t num] [-m num] [-p file]
-options:
- --help       -h          print help
- --bletter    -b          set boundary letter (default is a FULL STOP '.')
- --leading    -l          set minimum leading spot distance (default 2)
- --trailing   -t          set minimum trailing spot distance (default 2)
- --mins       -m          set minimum leading and trailing spot distances
-              -0 ... -9   equivalent to -m 0 ... -m 9
- --patterns   -p          set pattern file to use for determining spots
-              -T          equivalent to -p hyph-de-1901.pat.txt
-              -S          equivalent to -p hyph-de-ch-1901.pat.txt
-              -R          equivalent to -p hyph-de-1996.pat.txt
-
-Shows the process of calculating spots within strings using Liang patterns. Strings are read from standard input and must be in the UTF-8 encoding. A pattern file specified via -p must contain pure text patterns in the UTF-8 encoding. Pattern files are searched using the kpse library. Using a boundary letter different from or leading and trailing boundary spot distances smaller than those used during pattern creation can lead to wrong results.]]
+   print('usage: texlua ' .. progname .. [[ [options]
+Reads UTF-8 encoded strings from standard input and decomposes them into Liang patterns. Decomposition results are visualized. Options:
+long        short  arg   description
+--help      -h           print help
+--bletter   -b     char  set boundary letter (default is a FULL STOP '.')
+--leading   -l     num   set minimum leading spot distance (default 2)
+--trailing  -t     num   set minimum trailing spot distance (default 2)
+--mins      -m     num   set minimum leading and trailing spot distances
+            -0 ... -9    equivalent to -m 0 ... -m 9
+--patterns  -p     file  set pattern file to use for decomposition
+                         File is searched using the kpse library.
+                         Patterns must be pure text in UTF-8 encoding.
+            -T           equivalent to -p hyph-de-1901.pat.txt
+            -S           equivalent to -p hyph-de-ch-1901.pat.txt
+            -R           equivalent to -p hyph-de-1996.pat.txt
+]]
    )
 end
 
