@@ -40,7 +40,7 @@ local function hyphenate_with_explicit_hyphen(head, twords)
       for _,n in ipairs(word.nodes) do
          Tinsert(chars, Uchar(n.char))
       end
-      texio.write('[pdnm] ', Tconcat(spot:to_word_with_spots(chars, word.levels, '-', '=')))
+      texio.write('[pdnm] ', Tconcat(spot:to_word_with_spots(chars, word.levels)))
       -- Only process words containing explicit hyphens.
       if word.exhyphenchars then
          -- Insert trailing fake explicit hyphen.
@@ -74,7 +74,7 @@ local function hyphenate_with_explicit_hyphen(head, twords)
             Tinsert(chars, Uchar(n.char))
          end
          texio.write(' : ')
-         texio.write(Tconcat(spot:to_word_with_spots(chars, word.levels, '-', '=')))
+         texio.write(Tconcat(spot:to_word_with_spots(chars, word.levels)))
          for pos, level in ipairs(word.levels) do
             -- Spot with surrounding top-level glyph nodes?
             if (level % 2 == 1) and not word.parents[pos-1] and not word.parents[pos] then

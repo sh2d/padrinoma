@@ -269,27 +269,69 @@ M.to_word_with_levels = to_word_with_levels
 
 
 
+--- Get spot characters.
+-- Spot characters are inserted into a word at positions, where Liang
+-- pattern matching results in an odd level.  Characters in a word equal
+-- to the spot character are replaced by the explicit spot character in
+-- the result.  Default spot and explicit spot characters are
+-- HYPHEN-MINUS (U+002D) and EQUALS SIGN (U+003D).
+--
+-- @param self  Callee reference.
+-- @return Two characters: spot character and explicit spot character.
+local function get_spot_chars(self)
+   return self.spot_char, self.explicit_spot_char
+end
+M.get_spot_chars = get_spot_chars
+
+
+
+--- Set spot characters.
+-- Spot characters are inserted into a word at positions, where Liang
+-- pattern matching results in an odd level.  Characters in a word equal
+-- to the spot character are replaced by the explicit spot character in
+-- the result.  Default spot and explicit spot characters are
+-- HYPHEN-MINUS (U+002D) and EQUALS SIGN (U+003D).
+--
+-- @param self  Callee reference.
+-- @param spot_ch  New spot character.
+-- @param expl_spot_ch  New explicit spot character.
+-- @return Two characters: old spot character and old explicit spot
+-- character.
+local function set_spot_chars(self, spot_ch, expl_spot_ch)
+   local old_spot_ch, old_expl_spot_ch = self.spot_char, self.explicit_spot_char
+   self.spot_char = spot_ch
+   self.explicit_spot_char = expl_spot_ch
+   return old_spot_ch, old_expl_spot_ch
+end
+M.set_spot_chars = set_spot_chars
+
+
+
 --- Create table containing all letters of a word and spot letters at
 --- spot positions.
+-- Spot characters are inserted into a word at positions, where Liang
+-- pattern matching results in an odd level.  Characters in a word equal
+-- to the spot character are replaced by the explicit spot character in
+-- the result.  Default spot and explicit spot characters are
+-- HYPHEN-MINUS (U+002D) and EQUALS SIGN (U+003D).
 --
 -- @param self  Callee reference.
 -- @param word  A word in table representation.
 -- @param levels  A level table.
--- @param spot_letter  A letter representing a spot.
--- @param explicit_spot_letter  Letters equal to `spot_letter` in input
--- are transformed to this letter in output.
+-- @param explicit_spot_char  Letters equal to spot character in input
+-- are transformed to this character in output.
 -- @return Table of letters and spots.
-local function to_word_with_spots(self, word, levels, spot_letter, explicit_spot_letter)
+local function to_word_with_spots(self, word, levels)
    assert(type(word) == 'table','Word must be in table representation. Got ' .. type(word) .. ': ' .. tostring(word))
    local h = {}
    for pos, letter in ipairs(word) do
-      if levels[pos] % 2 == 1 then Tinsert(h, spot_letter) end
-      if letter == spot_letter then
-         letter = explicit_spot_letter
+      if levels[pos] % 2 == 1 then Tinsert(h, self.spot_char) end
+      if letter == self.spot_char then
+         letter = self.explicit_spot_char
       end
       Tinsert(h, letter)
    end
-   if levels[#levels] % 2 == 1 then Tinsert(h, spot_letter) end
+   if levels[#levels] % 2 == 1 then Tinsert(h, self.spot_char) end
    return h
 end
 M.to_word_with_spots = to_word_with_spots
@@ -350,6 +392,7 @@ local function init(self)
    self.trie.value_to_string = value_to_string
    -- Set some default values.
    self:set_spot_mins(2, 2)
+   self:set_spot_chars('-', '=')
 end
 M.init = init
 

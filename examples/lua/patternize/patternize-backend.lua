@@ -112,7 +112,7 @@ local function cb_pdnm_pattern__decomposition_finish(self)
    -- Output string with levels.
    io.write(' ', Tconcat(self:to_word_with_levels(word, word_levels)), '\n')
    -- Output string with spots.
-   io.write(Tconcat(self:to_word_with_spots(word, word_levels, '-')), '\n')
+   io.write(Tconcat(self:to_word_with_spots(word, word_levels)), '\n')
 end
 
 
