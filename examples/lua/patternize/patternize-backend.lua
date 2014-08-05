@@ -124,7 +124,7 @@ spot.cb_pdnm_pattern__decomposition_start = cb_pdnm_pattern__decomposition_start
 spot.cb_pdnm_pattern__decomposition_pattern_found = cb_pdnm_pattern__decomposition_pattern_found
 
 
-local function init(patternfile, bletter, leading, trailing)
+local function init(patternfile, leading, trailing, spot_char, expl_spot_char, boundary_char)
    -- Check if pattern file can be found.
    local kpsepatternfile = kpse.find_file(patternfile)
    if not kpsepatternfile then
@@ -132,12 +132,13 @@ local function init(patternfile, bletter, leading, trailing)
       os.exit(1)
    end
    -- Print parameters.
-   print('boundary letter: \'' .. bletter .. '\'')
    print('spot mins: ' .. leading .. ' ' .. trailing)
+   print('special characters: \'' .. spot_char .. ' ' .. expl_spot_char .. ' ' .. boundary_char .. '\'')
    print('pattern file: ' .. kpsepatternfile)
    -- Set spot instance  parameters.
-   spot:set_boundary_letter(bletter)
    spot:set_spot_mins(leading, trailing)
+   spot:set_spot_chars(spot_char, expl_spot_char)
+   spot:set_boundary_letter(boundary_char)
    -- Read patterns from file.
    do
       local fin = assert(io.open(kpsepatternfile, 'r'))
@@ -152,7 +153,7 @@ M.init = init
 -- Process a line given as string.
 local function process_line(line)
    -- Process all words in line.
-   for s in Ugmatch(line, '%w+') do
+   for s in Ugmatch(line, '%S+') do
       local word = spot:to_word(Ulower(s))
       spot:find_levels(word)
    end

@@ -45,6 +45,7 @@ local backend = require('patternize-backend')
 local alt_getopt = require('alt_getopt')
 
 local Ulen = unicode.utf8.len
+local Usub = unicode.utf8.sub
 
 
 -- Output help message.
@@ -54,7 +55,6 @@ local function help()
 Reads UTF-8 encoded strings from standard input and decomposes them into Liang patterns. Decomposition results are visualized. Options:
 long        short  arg   description
 --help      -h           print help
---bletter   -b     char  set boundary letter (default is a FULL STOP '.')
 --leading   -l     num   set minimum leading spot distance (default 2)
 --trailing  -t     num   set minimum trailing spot distance (default 2)
 --mins      -m     num   set minimum leading and trailing spot distances
@@ -65,6 +65,11 @@ long        short  arg   description
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
             -R           equivalent to -p hyph-de-1996.pat.txt
+--chars     -c     chars set special characters, argument is a string of up to
+                         three characters:
+                         1. spot character, default is HYPHEN-MINUS '-'
+                         2. explicit spot character, default is EQUALS SIGN '='
+                         3. boundary character, default is FULL STOP '.'
 ]]
    )
 end
@@ -81,18 +86,20 @@ end
 -- Declare options.
 local long_opts = {
    help = 'h',
-   bletter = 'b',
    leading = 'l',
    trailing = 't',
    mins = 'm',
    patterns = 'p',
+   chars = 'c',
 }
 -- Parse options.
-local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'b:l:t:m:0123456789p:TSRh', long_opts)
+local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'l:t:m:0123456789p:TSRc:h', long_opts)
 -- Set some default values.
-local bletter = '.'
 local leading = 2
 local trailing = 2
+local spot_char = '-'
+local expl_spot_char = '='
+local boundary_char = '.'
 local patternfile = nil
 -- Ordered option evaluation.
 for i,v in ipairs(opts) do
@@ -102,11 +109,16 @@ for i,v in ipairs(opts) do
    elseif v == 'l' then if num_arg then leading = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 't' then if num_arg then trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 'm' then if num_arg then leading = num_arg; trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
-   elseif v == 'b' then if Ulen(optarg[i]) == 1 then bletter = optarg[i] else bad_arg(v, 'single character', optarg[i]) end
    elseif v == 'p' then patternfile = optarg[i]
    elseif v == 'R' then patternfile = 'hyph-de-1996.pat.txt'
    elseif v == 'S' then patternfile = 'hyph-de-ch-1901.pat.txt'
    elseif v == 'T' then patternfile = 'hyph-de-1901.pat.txt'
+   elseif v == 'c' then
+      local chars = optarg[i]
+      if Ulen(chars) < 1 then bad_arg(v, 'at least one character', optarg[i]) end
+      spot_char = Usub(chars, 1, 1)
+      expl_spot_char = Usub(chars, 2, 2) or expl_spot_char
+      boundary_char = Usub(chars, 3, 3) or boundary_char
    elseif v == 'h' then help(); os.exit(0)
    else
       print('Unknown option -' .. v)
@@ -123,7 +135,7 @@ end
 
 
 -- Initialize work module.
-backend.init(patternfile, bletter, leading, trailing)
+backend.init(patternfile, leading, trailing, spot_char, expl_spot_char, boundary_char)
 
 
 -- Process lines in standard input.
