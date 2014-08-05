@@ -55,16 +55,16 @@ local function help()
 Reads UTF-8 encoded strings from standard input and decomposes them into Liang patterns. Decomposition results are visualized. Options:
 long        short  arg   description
 --help      -h           print help
---leading   -l     num   set minimum leading spot distance (default 2)
---trailing  -t     num   set minimum trailing spot distance (default 2)
---mins      -m     num   set minimum leading and trailing spot distances
-            -0 ... -9    equivalent to -m 0 ... -m 9
 --patterns  -p     file  set pattern file to use for decomposition
                          File is searched using the kpse library.
                          Patterns must be pure text in UTF-8 encoding.
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
             -R           equivalent to -p hyph-de-1996.pat.txt
+--leading   -l     num   set minimum leading spot distance (default 2)
+--trailing  -t     num   set minimum trailing spot distance (default 2)
+--mins      -m     num   set minimum leading and trailing spot distances
+            -0 ... -9    equivalent to -m 0 ... -m 9
 --chars     -c     chars set special characters, argument is a string of up to
                          three characters:
                          1. spot character, default is HYPHEN-MINUS '-'
@@ -86,14 +86,14 @@ end
 -- Declare options.
 local long_opts = {
    help = 'h',
+   patterns = 'p',
    leading = 'l',
    trailing = 't',
    mins = 'm',
-   patterns = 'p',
    chars = 'c',
 }
 -- Parse options.
-local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'l:t:m:0123456789p:TSRc:h', long_opts)
+local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'hp:TSRl:t:m:0123456789c:', long_opts)
 -- Set some default values.
 local leading = 2
 local trailing = 2
@@ -106,13 +106,13 @@ for i,v in ipairs(opts) do
    local num_opt = tonumber(v)
    local num_arg = tonumber(optarg[i])
    if num_opt then leading = num_opt; trailing = num_opt
-   elseif v == 'l' then if num_arg then leading = num_arg else bad_arg(v, 'number', optarg[i]) end
-   elseif v == 't' then if num_arg then trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
-   elseif v == 'm' then if num_arg then leading = num_arg; trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 'p' then patternfile = optarg[i]
    elseif v == 'R' then patternfile = 'hyph-de-1996.pat.txt'
    elseif v == 'S' then patternfile = 'hyph-de-ch-1901.pat.txt'
    elseif v == 'T' then patternfile = 'hyph-de-1901.pat.txt'
+   elseif v == 'l' then if num_arg then leading = num_arg else bad_arg(v, 'number', optarg[i]) end
+   elseif v == 't' then if num_arg then trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
+   elseif v == 'm' then if num_arg then leading = num_arg; trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 'c' then
       local chars = optarg[i]
       if Ulen(chars) < 1 then bad_arg(v, 'at least one character', optarg[i]) end
