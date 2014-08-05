@@ -53,8 +53,20 @@ local Urep = unicode.utf8.rep
 local M = {}
 
 
--- Read patterns.
-local function record_to_value(self, pattern)
+-- Set-up string decomposition for non-verbose output.
+
+local function decomposition_finish__non_verbose(self)
+   self.super.cb_pdnm_pattern__decomposition_finish(self)
+   local word = self.word
+   local word_levels = self.word_levels
+   -- Output string with spots.
+   io.write(Tconcat(self:to_word_with_spots(word, word_levels)), '\n')
+end
+
+
+-- Provide pattern reader for verbose output.
+
+local function record_to_value__verbose(self, pattern)
    local pat_levels = {}
    local pos = 0
    for ch in Ugmatch(pattern, '.') do
@@ -82,16 +94,16 @@ local function record_to_value(self, pattern)
 end
 
 
--- Set-up string decomposition.
+-- Set-up string decomposition for verbose output.
 
-local function cb_pdnm_pattern__decomposition_start(self)
+local function decomposition_start__verbose(self)
    self.super.cb_pdnm_pattern__decomposition_start(self)
    local boundary = self.boundary_letter
    io.write('\n ', boundary, ' ', Tconcat(self.word, ' '), ' ', boundary, '\n')
 end
 
 
-local function cb_pdnm_pattern__decomposition_pattern_found(self, node, start_pos)
+local function decomposition_pattern_found__verbose(self, node, start_pos)
    for level_pos,level in pairs(self.trie:get_value(node).levels) do
       -- Position of level in word.
       local pos = start_pos + level_pos - 1
@@ -105,7 +117,7 @@ local function cb_pdnm_pattern__decomposition_pattern_found(self, node, start_po
 end
 
 
-local function cb_pdnm_pattern__decomposition_finish(self)
+local function decomposition_finish__verbose(self)
    self.super.cb_pdnm_pattern__decomposition_finish(self)
    local word = self.word
    local word_levels = self.word_levels
@@ -116,20 +128,24 @@ local function cb_pdnm_pattern__decomposition_finish(self)
 end
 
 
--- Create module local spot instance and overwrite some of its functions.
+-- Create module local spot instance.
 local spot = cls_spot:new()
-spot.trie.record_to_value = record_to_value
-spot.cb_pdnm_pattern__decomposition_finish = cb_pdnm_pattern__decomposition_finish
-spot.cb_pdnm_pattern__decomposition_start = cb_pdnm_pattern__decomposition_start
-spot.cb_pdnm_pattern__decomposition_pattern_found = cb_pdnm_pattern__decomposition_pattern_found
 
 
-local function init(patternfile, leading, trailing, spot_char, expl_spot_char, boundary_char)
+local function init(patternfile, verbose, leading, trailing, spot_char, expl_spot_char, boundary_char)
    -- Check if pattern file can be found.
    local kpsepatternfile = kpse.find_file(patternfile)
    if not kpsepatternfile then
       print('Could not find pattern file ' .. patternfile)
       os.exit(1)
+   end
+   if verbose then
+      spot.trie.record_to_value = record_to_value__verbose
+      spot.cb_pdnm_pattern__decomposition_start = decomposition_start__verbose
+      spot.cb_pdnm_pattern__decomposition_pattern_found = decomposition_pattern_found__verbose
+      spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__verbose
+   else
+      spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__non_verbose
    end
    -- Print parameters.
    print('spot mins: ' .. leading .. ' ' .. trailing)

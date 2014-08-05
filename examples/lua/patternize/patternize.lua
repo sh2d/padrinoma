@@ -61,6 +61,7 @@ long        short  arg   description
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
             -R           equivalent to -p hyph-de-1996.pat.txt
+--verbose   -v           print matching patterns per word
 --leading   -l     num   set minimum leading spot distance (default 2)
 --trailing  -t     num   set minimum trailing spot distance (default 2)
 --mins      -m     num   set minimum leading and trailing spot distances
@@ -87,14 +88,16 @@ end
 local long_opts = {
    help = 'h',
    patterns = 'p',
+   verbose = 'v',
    leading = 'l',
    trailing = 't',
    mins = 'm',
    chars = 'c',
 }
 -- Parse options.
-local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'hp:TSRl:t:m:0123456789c:', long_opts)
+local opts, optind, optarg = alt_getopt.get_ordered_opts(arg, 'hp:TSRvl:t:m:0123456789c:', long_opts)
 -- Set some default values.
+local verbose = false
 local leading = 2
 local trailing = 2
 local spot_char = '-'
@@ -110,6 +113,7 @@ for i,v in ipairs(opts) do
    elseif v == 'R' then patternfile = 'hyph-de-1996.pat.txt'
    elseif v == 'S' then patternfile = 'hyph-de-ch-1901.pat.txt'
    elseif v == 'T' then patternfile = 'hyph-de-1901.pat.txt'
+   elseif v == 'v' then verbose = true
    elseif v == 'l' then if num_arg then leading = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 't' then if num_arg then trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
    elseif v == 'm' then if num_arg then leading = num_arg; trailing = num_arg else bad_arg(v, 'number', optarg[i]) end
@@ -135,7 +139,7 @@ end
 
 
 -- Initialize work module.
-backend.init(patternfile, leading, trailing, spot_char, expl_spot_char, boundary_char)
+backend.init(patternfile, verbose, leading, trailing, spot_char, expl_spot_char, boundary_char)
 
 
 -- Process lines in standard input.
