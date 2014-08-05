@@ -1,0 +1,15 @@
+%% -*- coding: utf-8 -*-
+\RequirePackage{expl3}
+\ProvidesExplPackage{pdnm_break-ligatures}{2014/08/05}{0.1}{Break wrong ligatures (SH)}
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+% Test for the LuaTeX engine.
+\msg_new:nnn{pdnm_break-ligatures}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
+\luatex_if_engine:TF{}{\msg_fatal:nn{pdnm_break-ligatures}{bad-engine}}
+% Load padrinoma package.
+\usepackage{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_break-ligatures.lua')
+}

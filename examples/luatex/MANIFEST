@@ -8,6 +8,13 @@ available in [LuaDoc][luadoc] format.
 [luadoc]: http://keplerproject.github.io/luadoc/
 
 
+# `break-ligatures/`
+
+Contains a LuaLaTeX document showing how wrong ligatures can be broken
+by applying word joint (affix and compound) hyphenation patterns after
+TeX's ligaturing routine.
+
+
 # `hyphenate-with-explicit-hyphen/`
 
 Contains a LuaLaTeX document showing hyphenation of words containing

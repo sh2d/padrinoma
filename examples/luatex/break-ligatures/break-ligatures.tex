@@ -1,0 +1,93 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{luainputenc}
+\usepackage{lmodern}
+\usepackage[main=english, german]{babel}
+\usepackage{pdnm_break-ligatures}
+\begin{document}
+
+\section{Pattern driven ligature handling in \TeX}
+
+This is an example application of the padrinoma package demonstrating
+selective, pattern driven ligature handling.  No explicit ligature
+handling mark-up has been used in the examples shown below.
+
+\subsection{German examples}
+
+% Read example word lists from files.
+\bgroup
+% Characters # and % are used in Lua code.
+\catcode`\#=12
+\catcode`\%=12
+\directlua{
+  local function read_words(basename, t)
+     local fi = assert(io.open(basename .. '.lig', 'r'))
+     local file = fi:read('*a')
+     fi:close()
+     t.lig = {}
+     for word in unicode.utf8.gmatch(file, '(%w+)') do
+        table.insert(t.lig, word)
+     end
+     local fi = assert(io.open(basename .. '.nolig', 'r'))
+     local file = fi:read('*a')
+     fi:close()
+     t.nolig = {}
+     for word in unicode.utf8.gmatch(file, '(%w+)') do
+        table.insert(t.nolig, word)
+     end
+  end
+
+  words = {
+     ff = {},
+     fi = {},
+     fl = {},
+     ffi = {},
+     ffl = {},
+  }
+
+  read_words('words.german.ff', words.ff)
+  read_words('words.german.fi', words.fi)
+  read_words('words.german.fl', words.fl)
+  read_words('words.german.ffi', words.ffi)
+  read_words('words.german.ffl', words.ffl)
+
+  function paragraphs(words, num_p, num_w)
+      for i = 1,num_p do
+         for w = 1,num_w / 2 do
+            tex.print(words.lig[math.random(#words.lig)] .. ' ' .. words.nolig[math.random(#words.nolig)] .. ' ')
+         end
+         tex.print('\par')
+      end
+   end
+   math.randomseed(os.time())
+}
+\egroup
+
+\subsubsection{Letters combination f + f}
+\begin{otherlanguage}{german}
+\directlua{paragraphs(words.ff, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination f + i}
+\begin{otherlanguage}{german}
+\directlua{paragraphs(words.fi, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination f + l}
+\begin{otherlanguage}{german}
+\directlua{paragraphs(words.fl, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination f + f + i}
+\begin{otherlanguage}{german}
+\directlua{paragraphs(words.ffi, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination f + f + l}
+\begin{otherlanguage}{german}
+\directlua{paragraphs(words.ffl, 1, 50)}
+\end{otherlanguage}
+
+\end{document}
