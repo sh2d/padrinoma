@@ -1,0 +1,15 @@
+# `hyph-de-1901-nonstd.pat.txt`
+
+Non-standard hyphenation patterns, traditional orthography.
+
+These patterns indicate spots where ck or triple-consonant rules have to
+be applied.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->
