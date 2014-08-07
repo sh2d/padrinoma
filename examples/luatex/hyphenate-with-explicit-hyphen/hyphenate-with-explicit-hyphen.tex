@@ -10,12 +10,34 @@
 %  * name of a pattern file (full file name),
 %  * name of a Lua module implementing a manipulation (base file name),
 %  * a unique ID for the manipulation (interpreted as a Lua string).
-\PadrinomaRegisterManipulation{ngerman}{hyph-de-1901.pat.txt}{pdnm_hyphenate-with-explicit-hyphen}{explicit-hyphen}
+\PadrinomaRegisterManipulation{ngerman}{../../patterns/hyph-de-1996-compound.pat.txt}{pdnm_hyphenate-with-explicit-hyphen}{explicit-hyphen}
 \begin{document}
+This is an example application of the padrinoma package illustrating
+automatic hyphenation of words containing a hyphen with Lua\TeX.  No
+explicit hyphenation mark-up has been used in the source document.
+
+In this example, word particles are hyphenated independently using
+dedicated German compound word hyphenation patterns, read from file
+\begin{center}
+\verb+examples/patterns/hyph-de-1996-compound.pat.txt+
+\end{center}
+with inner word left and right hyphenation minima set to a value of~4.
+If there are no such patterns available for your language, regular
+hyphenation patterns can be used just as well.  But it is recommended to
+set inner word hyphenation minima to a large value, \emph{e.g.},~8, in
+that case.  Currently, these values are hard-coded, but they can be
+adjusted in file
+\begin{center}
+\verb+pdnm_hyphenate-with_explicit-hyphen.lua+
+\end{center}
+
 See \texttt{log} file for a list of hyphenated German words containing
-explicit hyphens.  Note, for words containing explicit hyphens, leading
-and trailing hyphen minima (per word particle) have intentionally been
-set to a high value of~8.
+explicit hyphens.  Hyphenation results can be found after the colon in
+lines starting \verb+[pdnm]+.  Hyphens in input are replaced by an equal
+sign in output.  In the example \emph{Notaus-Schalter}, if inner word
+hyphenation minima were set to smaller values, that would have been
+hyphenated \emph{Not-aus=Schalter} as \emph{Notaus} itself is a compound
+word and recognized as such by the given patterns.
 
 \begin{otherlanguage}{ngerman}
 \showhyphens{

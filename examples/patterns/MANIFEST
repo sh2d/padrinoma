@@ -6,6 +6,13 @@ These patterns indicate spots where ck or triple-consonant rules have to
 be applied.
 
 
+# `hyph-de-1996-compound.pat.txt`
+
+Compound word hyphenation patterns, reformed orthography.
+
+These patterns indicate word boundaries in compound words.
+
+
 
 <!--
 %%% Local Variables: 

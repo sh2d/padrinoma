@@ -3,7 +3,7 @@ local unicode = require('unicode')
 local cls_spot = require('cls_pdnm_spot')
 
 local spot = cls_spot:new()
-local pattern_name = 'hyph-de-1901.pat.txt'
+local pattern_name = '../../patterns/hyph-de-1996-compound.pat.txt'
 local fin = kpse.find_file(pattern_name)
 fin = assert(io.open(fin, 'r'), 'Could not open pattern file ' .. pattern_name .. '!')
 local count = spot:read_patterns(fin)
@@ -40,7 +40,7 @@ local function hyphenate_with_explicit_hyphen(head, twords)
       for _,n in ipairs(word.nodes) do
          Tinsert(chars, Uchar(n.char))
       end
-      texio.write(Tconcat(spot:to_word_with_spots(chars, word.levels, '-', '=')))
+      texio.write('[pdnm] ', Tconcat(spot:to_word_with_spots(chars, word.levels, '-', '=')))
       -- Only process words containing explicit hyphens.
       if word.exhyphenchars then
          -- Insert trailing fake explicit hyphen.
@@ -53,8 +53,8 @@ local function hyphenate_with_explicit_hyphen(head, twords)
                spot:decomposition_advance(Uchar(TEXgetlccode(word.nodes[i].char)))
             end
             spot:decomposition_advance(spot.boundary_letter)
-            local leading_spot_min = 8
-            local trailing_spot_min = 8
+            local leading_spot_min = 4
+            local trailing_spot_min = 4
             -- Take hyphen minima from original word for outer word boundaries.
 --            if i_exhyphen == 1 then
 --               leading_spot_min = word.nodes[curr_exhyphen_pos-1].left
