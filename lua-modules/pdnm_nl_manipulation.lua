@@ -201,7 +201,7 @@ local function new_current_word()
    -- Prepare new word decomposition.
    manipulation.spot:decomposition_start()
    -- Process leading boundary letter.
-   manipulation.spot:decomposition_advance(manipulation.spot.boundary)
+   manipulation.spot:decomposition_advance(manipulation.spot.boundary_letter)
 end
 
 
@@ -225,7 +225,7 @@ local function finish_current_word()
    -- Adjust spot mins.  Must be done before finishing decomposition.
    manipulation.spot:set_spot_mins(last_glyph.left, last_glyph.right)
    -- Process trailing boundary letter.
-   manipulation.spot:decomposition_advance(manipulation.spot.boundary)
+   manipulation.spot:decomposition_advance(manipulation.spot.boundary_letter)
    -- Finish decomposition.
    manipulation.spot:decomposition_finish()
    -- Insert processed word into word table.

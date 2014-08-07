@@ -48,11 +48,11 @@ local function hyphenate_with_explicit_hyphen(head, twords)
          local last_exhyphen_pos = 0
          for i_exhyphen,curr_exhyphen_pos in ipairs(word.exhyphenchars) do
             spot:decomposition_start()
-            spot:decomposition_advance(spot.boundary)
+            spot:decomposition_advance(spot.boundary_letter)
             for i = last_exhyphen_pos+1,curr_exhyphen_pos-1 do
                spot:decomposition_advance(Uchar(TEXgetlccode(word.nodes[i].char)))
             end
-            spot:decomposition_advance(spot.boundary)
+            spot:decomposition_advance(spot.boundary_letter)
             local leading_spot_min = 8
             local trailing_spot_min = 8
             -- Take hyphen minima from original word for outer word boundaries.
