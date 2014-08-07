@@ -95,6 +95,7 @@ local Tremove = table.remove
 local Tsort = table.sort
 local TEXgetlccode = tex.getlccode
 local Uchar = unicode.utf8.char
+local Ugsub = unicode.utf8.gsub
 
 
 
@@ -467,8 +468,10 @@ local function __cb_write_words()
             Tinsert(a, k)
          end
          Tsort(a)
+         -- Remove all path information from pattern file name.
+         local pattern_name = Ugsub(manipulation.pattern_name, '^.*/', '')
          -- Write words to file.
-         local fout = assert(io.open(manipulation.pattern_name .. '.spots', 'w'))
+         local fout = assert(io.open(pattern_name .. '.spots', 'w'))
          for _,v in ipairs(a) do
             fout:write(v, '\n')
          end
