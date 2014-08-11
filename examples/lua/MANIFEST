@@ -24,8 +24,9 @@ decomposition in class `cls_pdnm_pattern`.
 
 # `patternize/`
 
-Reads UTF-8 encoded strings from standard input and decomposes them into
-Liang patterns.  Decomposition results are visualized.
+Decomposes UTF-8 encoded strings from stdin into Liang patterns and
+calculates spots indicating, e.g., valid hyphenation points. Results
+(optionally with decomposition information) are written to stdout.
 
 This is an application of intercepting the process of string
 decomposition in class `cls_pdnm_spot`.

@@ -52,22 +52,22 @@ local Usub = unicode.utf8.sub
 local function help()
    local progname = arg[0]
    print('usage: texlua ' .. progname .. [[ [options]
-Reads UTF-8 encoded strings from standard input and decomposes them into Liang patterns. Decomposition results are visualized. Options:
+Decomposes UTF-8 encoded strings from stdin into Liang patterns and calculates spots indicating, e.g., valid hyphenation points. Results (optionally with decomposition information) are written to stdout. Options:
 long        short  arg   description
---help      -h           print help
+--help      -h           show help
 --patterns  -p     file  set pattern file to use for decomposition
                          File is searched using the kpse library.
                          Patterns must be pure text in UTF-8 encoding.
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
             -R           equivalent to -p hyph-de-1996.pat.txt
---verbose   -v           print matching patterns per word
+--verbose   -v           output decomposition information
 --leading   -l     num   set minimum leading spot distance (default 2)
 --trailing  -t     num   set minimum trailing spot distance (default 2)
 --mins      -m     num   set minimum leading and trailing spot distances
             -0 ... -9    equivalent to -m 0 ... -m 9
 --chars     -c     chars set special characters, argument is a string of up to
-                         three characters:
+                         three UTF-8 characters:
                          1. spot character, default is HYPHEN-MINUS '-'
                          2. explicit spot character, default is EQUALS SIGN '='
                          3. boundary character, default is FULL STOP '.'
