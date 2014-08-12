@@ -143,7 +143,7 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
       spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__non_verbose
    end
    -- Check if pattern file can be found.
-   local kpsepatternfile = kpse.find_file(patternfile)
+   local kpsepatternfile = kpse.find_file(patternfile) or kpse.find_file('hyph-' .. patternfile .. '.pat.txt')
    if not kpsepatternfile then
       io.stderr:write('Could not find pattern file ', patternfile, '\n')
       os.exit(1)

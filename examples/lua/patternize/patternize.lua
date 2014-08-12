@@ -56,7 +56,8 @@ Decomposes UTF-8 encoded strings from stdin into Liang patterns and calculates s
 long        short  arg   description
 --help      -h           show help
 --patterns  -p     file  set pattern file to use for decomposition
-                         File is searched using the kpse library.
+                         Files '<file>' as well as 'hyph-<file>.pat.txt' are
+                         searched in that order using the kpse library.
                          Patterns must be pure text in UTF-8 encoding.
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
