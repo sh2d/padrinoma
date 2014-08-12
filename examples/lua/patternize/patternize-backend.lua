@@ -133,12 +133,7 @@ local spot = cls_spot:new()
 
 
 local function init(patternfile, verbose, leading, trailing, spot_char, expl_spot_char, boundary_char)
-   -- Check if pattern file can be found.
-   local kpsepatternfile = kpse.find_file(patternfile)
-   if not kpsepatternfile then
-      io.stderr:write('Could not find pattern file ', patternfile, '\n')
-      os.exit(1)
-   end
+   -- Set-up object methods.
    if verbose then
       spot.trie.record_to_value = record_to_value__verbose
       spot.cb_pdnm_pattern__decomposition_start = decomposition_start__verbose
@@ -147,20 +142,24 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
    else
       spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__non_verbose
    end
+   -- Check if pattern file can be found.
+   local kpsepatternfile = kpse.find_file(patternfile)
+   if not kpsepatternfile then
+      io.stderr:write('Could not find pattern file ', patternfile, '\n')
+      os.exit(1)
+   end
+   -- Read patterns from file (must be done after setting-up spot.trie.*
+   -- variables).
+   local fin = assert(io.open(kpsepatternfile, 'r'))
+   local count = spot:read_patterns(fin)
+   fin:close()
+   io.write('pattern file: ', kpsepatternfile, ' (', count, ' patterns read)\n')
    -- Print parameters.
    io.write('spot mins, special characters: ', leading, ' ', trailing, ' \'', spot_char, expl_spot_char, boundary_char, '\'\n')
-   io.write('pattern file: ', kpsepatternfile)
-   -- Set spot instance  parameters.
+   -- Set spot instance parameters.
    spot:set_spot_mins(leading, trailing)
    spot:set_spot_chars(spot_char, expl_spot_char)
    spot:set_boundary_letter(boundary_char)
-   -- Read patterns from file.
-   do
-      local fin = assert(io.open(kpsepatternfile, 'r'))
-      local count = spot:read_patterns(fin)
-      fin:close()
-      io.write(' (', count, ' patterns read)\n')
-   end
 end
 M.init = init
 
