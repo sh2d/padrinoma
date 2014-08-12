@@ -107,7 +107,7 @@ local function decomposition_pattern_found__verbose(self, node, start_pos)
    for level_pos,level in pairs(self.trie:get_value(node).levels) do
       -- Position of level in word.
       local pos = start_pos + level_pos - 1
-      -- print('level_pos '..level_pos, '   level '..level, '   pos '..pos)
+      -- io.stderr:write('level_pos ', level_pos, '   level ', level, '   pos ', pos, '\n')
       local word_levels = self.word_levels
       if level > word_levels[pos] then
          word_levels[pos] = level
@@ -136,7 +136,7 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
    -- Check if pattern file can be found.
    local kpsepatternfile = kpse.find_file(patternfile)
    if not kpsepatternfile then
-      print('Could not find pattern file ' .. patternfile)
+      io.stderr:write('Could not find pattern file ', patternfile, '\n')
       os.exit(1)
    end
    if verbose then
@@ -148,9 +148,8 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
       spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__non_verbose
    end
    -- Print parameters.
-   print('spot mins: ' .. leading .. ' ' .. trailing)
-   print('special characters: \'' .. spot_char .. ' ' .. expl_spot_char .. ' ' .. boundary_char .. '\'')
-   print('pattern file: ' .. kpsepatternfile)
+   io.write('spot mins, special characters: ', leading, ' ', trailing, ' \'', spot_char, expl_spot_char, boundary_char, '\'\n')
+   io.write('pattern file: ', kpsepatternfile)
    -- Set spot instance  parameters.
    spot:set_spot_mins(leading, trailing)
    spot:set_spot_chars(spot_char, expl_spot_char)
@@ -160,7 +159,7 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
       local fin = assert(io.open(kpsepatternfile, 'r'))
       local count = spot:read_patterns(fin)
       fin:close()
-      io.write(count, ' patterns read.\n')
+      io.write(' (', count, ' patterns read)\n')
    end
 end
 M.init = init

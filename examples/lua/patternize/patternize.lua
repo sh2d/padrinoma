@@ -51,8 +51,8 @@ local Usub = unicode.utf8.sub
 -- Output help message.
 local function help()
    local progname = arg[0]
-   print('usage: texlua ' .. progname .. [[ [options]
-Decomposes UTF-8 encoded strings from stdin into Liang patterns and calculates spots indicating, e.g., valid hyphenation points. Results (optionally with decomposition information) are written to stdout. Options:
+   io.write('usage: texlua ', progname, [[ [options]
+Decomposes UTF-8 encoded strings from stdin into Liang patterns and calculates spots indicating, e.g., valid hyphenation points. Results are written to stdout, optionally with decomposition information. Options:
 long        short  arg   description
 --help      -h           show help
 --patterns  -p     file  set pattern file to use for decomposition
@@ -77,7 +77,7 @@ end
 
 
 local function bad_arg(option, type, got)
-   print('option -' .. option .. ': expected ' .. type .. ' argument, got: ' .. got)
+   io.stderr:write('option -', option, ': expected ', type, ' argument, got: ', got, '\n')
    os.exit(1)
 end
 
@@ -125,14 +125,14 @@ for i,v in ipairs(opts) do
       boundary_char = Usub(chars, 3, 3) or boundary_char
    elseif v == 'h' then help(); os.exit(0)
    else
-      print('Unknown option -' .. v)
+      io.stderr:write('Unknown option -', v, '\n')
       help()
       os.exit(1)
    end
 end
 -- Check if pattern file is set.
 if not patternfile then
-   print('Please specify a pattern file!')
+   io.write('Please specify a pattern file!\n')
    help()
    os.exit(1)
 end
