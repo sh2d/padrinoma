@@ -3,13 +3,12 @@
 \documentclass{article}
 \usepackage{fontspec}
 \usepackage[latin]{babel}
-\usepackage{padrinoma}
-\PadrinomaRegisterManipulation{
-  language = latin,
-  patterns = hyph-la.pat.txt,
-  module = pdnm_hyph-mark-by-color,
-  id = mark,
-  debug = true,
+\usepackage[language=latin]{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_hyph-mark-by-color.lua')
 }
 \usepackage{lipsum}
 \begin{document}

@@ -94,4 +94,23 @@ local function nstd_hyph(head, twords)
    end
 end
 
-return nstd_hyph
+
+
+-- Call-back registering.
+--
+-- Load padrinoma module.
+local padrinoma = require('pdnm_nl_manipulation')
+-- Create custom pattern matching function.
+local scan_node_list = padrinoma.create_node_list_scanner('../../patterns/hyph-de-1901-nonstd.pat.txt', 'german', true)
+
+-- Register hyphenate call-back.
+luatexbase.add_to_callback('hyphenate',
+                           function (head, tail)
+                              -- Apply regular hyphenation.
+                              lang.hyphenate(head)
+                              -- Do pattern matching.
+                              local twords = scan_node_list(head)
+                              -- Apply node list manipulation.
+                              return nstd_hyph(head, twords)
+                           end,
+                           'pdnm_hyphenate')

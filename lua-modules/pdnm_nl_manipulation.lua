@@ -168,12 +168,8 @@ local err, warn, info, log = luatexbase.provides_module(module)
 
 -- Module-wide variables.
 --
--- Table of manipulations.  Maps strings (ids) to a table containing
--- information about a manipulation.
-local manipulations
--- A table mapping manipulation id's to closures.  At the end of the
--- LuaTeX run these closures are called and write debugging information
--- to a file.
+-- A sequence of closures.  At the end of the LuaTeX run these closures
+-- are called and write debugging information to a file.
 local debug_information
 
 
@@ -185,22 +181,23 @@ local debug_information
 -- property tables.
 --
 -- @param pattern_name  Name of a pure text UTF-8 pattern file.
--- @param language_num  A language number patterns are associated with.
--- @param id  A unique identification string associated with a
--- manipulation.
+-- @param language  A language identifier or number patterns are
+-- associated with.
 -- @param is_debug  If this flag is <code>true</code>, at the end of the
 -- TeX run, a list of words with spots according to the given patterns
 -- is written to a file for debugging purposes.  By default, debugging
 -- is inactive.
 -- @return Custom node list scanner funtion.
 -- @see match_patterns
-local function create_node_list_scanner(pattern_name, language_num, id, is_debug)
+local function create_node_list_scanner(pattern_name, language, is_debug)
 
    -- Upvalues used while matching patterns against the words in a node
    -- list.
    --
    -- Spot object used for pattern matching.
    local spot
+   -- Language number associated with spot object.
+   local language_num
    -- Table of words with spots as strings (for debugging).
    local words_with_spots = {}
    --
@@ -430,8 +427,16 @@ local function create_node_list_scanner(pattern_name, language_num, id, is_debug
       fin:close()
       info(count .. ' patterns read from file ' .. pattern_name)
    end
+   -- Determine language number associated with spot object.
+   if type(language) == 'string' then language_num = padrinoma.language[language]
+   else language_num = language end
+   if type(language_num) ~= 'number' then
+      warn('Cannot determine language number for argument \'' .. tostring(language) .. '\'')
+      -- Don't return a node list scanner.
+      return
+   end
    -- Store custom function writing debug information to a file.
-   debug_information[id] = write_debug_information
+   Tinsert(debug_information, write_debug_information)
    -- Return custom pattern matching function.
    return scan_node_list
 end
@@ -439,83 +444,11 @@ M.create_node_list_scanner = create_node_list_scanner
 
 
 
---- Register a new pattern driven node manipulation.
--- All manipulations registered are executed in the `hyphenate`
--- call-back.
---
--- @param language_num  A language number patterns are associated with.
--- @param pattern_name  File name of a pure text UTF-8 pattern file.
--- @param module_name  File name of a module implementing a particular
--- node manipulation.  The module must return a function, which is
--- called for every node list encountered in the `hyphenate` call-back.
--- Arguments are the head of a node list, which was passed to the
--- `hyphenate` call-back, and a table containing a sequence of word
--- property tables.
--- @param id  A unique identification string associated with a
--- manipulation.
--- @param is_debug  Flag determining if a list of words with spots
--- should be written to a file at the end of the TeX run for debugging
--- purposes.  By default, debugging is inactive.
--- @see deregister_manipulation
-local function register_manipulation(language_num, pattern_name, module_name, id, is_debug)
-   local f = require(module_name)
-   if type(f) ~= 'function' then
-      err('Bad manipulation module ' .. module_name .. ': expected return value of type function, got ' .. type(f))
-   end
-   if not manipulations[id] then
-      manipulations[id] = {
-         scan_node_list = create_node_list_scanner(pattern_name, language_num, id, is_debug),
-         f = f,
-      }
-   end
-end
-M.register_manipulation = register_manipulation
-
-
-
---- De-register a pattern driven node manipulation.
--- Manipulations are  identified by the ID given during registration.
---
--- @param id  A unique identification string associated with the
--- manipulation to remove.
--- @return `true`, if the module was registered, else `false`.
--- @see register_manipulation
-local function deregister_manipulation(id)
-   local is_active = manipulations[id]
-   if is_active then
-      manipulations[id] = nil
-      debug_information[id] = nil
-   end
-   return is_active and true or false
-end
-M.deregister_manipulation = deregister_manipulation
-
-
-
---- (internal) This function is registered in hyphenate call-back.
---
--- @param head  Node list.
--- @return The value `true`.
-local function __cb_hyphenate(head)
-   -- Apply regular hyphenation.
-   lang.hyphenate(head)
-   -- Apply additional pattern driven node manipulation.
-   for _, manipulation in pairs(manipulations) do
-      -- Process words in node list.
-      local words = manipulation.scan_node_list(head)
-      -- Apply user-defined manipulation.
-      manipulation.f(head, words)
-   end
-   return true
-end
-
-
-
 --- (internal) Write debugging information.
 -- Write all words handled by a manipulation to a file.  File name is
 -- the pattern file name augmented by the extension <code>.spots</code>.
 local function __cb_write_debug_information()
-   for _, write_debug_information in pairs(debug_information) do
+   for _, write_debug_information in ipairs(debug_information) do
       write_debug_information()
    end
 end
@@ -524,12 +457,8 @@ end
 
 --- Module initialization.
 local function __init()
-   -- Initialize manipulation table.
-   manipulations = {}
    -- Initialize debugging information table.
    debug_information = {}
-   -- Register hyphenate call-back.
-   luatexbase.add_to_callback('hyphenate', __cb_hyphenate, 'pdnm_hyphenate')
    -- Register stop run call-back for spot debugging output.
    luatexbase.add_to_callback('stop_run', __cb_write_debug_information, 'pdnm_write_debug_information')
 end

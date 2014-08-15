@@ -4,13 +4,12 @@
 \usepackage{fontspec}
 \usepackage{multicol}
 \usepackage[main=english, german]{babel}
-\usepackage{padrinoma}
-\PadrinomaRegisterManipulation{
-  language = german,
-  patterns = ../../patterns/hyph-de-1901-nonstd.pat.txt,
-  module = pdnm_nonstd-hyph-de-1901,
-  id = nonstd-hyph-de-1901,
-  debug = true,
+\usepackage[language=german]{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_nonstd-hyph-de-1901.lua')
 }
 \begin{document}
 

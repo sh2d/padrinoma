@@ -44,13 +44,12 @@
 \luatex_if_engine:TF{}{\msg_fatal:nn{padrinoma}{bad-engine}}
 % Lua module version management.
 \RequirePackage{luatexbase-modutils}
-% LuaTeX call-back management.
-\RequirePackage{luatexbase-mcb}
 % Load padrinoma manipulation module.
 \directlua name {padrinoma}{
   % Reserve a global variable for our namespace.
   padrinoma = {}
-  padrinoma.nlm = require('pdnm_nl_manipulation')
+  % Set-up a language identifier to language number translation table.
+  padrinoma.language = {}
 }
 % We use expl3 syntax.
 \RequirePackage{xparse}
@@ -58,37 +57,20 @@
 \RequirePackage{l3keys2e}
 % Declare keys.
 \keys_define:nn {padrinoma} {
-  language .tl_set:N = \l_pdnm_opt_language_tl,
+  language .clist_set:N = \l_pdnm_opt_language_clist,
   language .value_required:,
-  patterns .tl_set:N = \l_pdnm_opt_patterns_tl,
-  patterns .value_required:,
-  module .tl_set:N = \l_pdnm_opt_module_tl,
-  module .value_required:,
-  id .tl_set:N = \l_pdnm_opt_id_tl,
-  id .value_required:,
-  debug .bool_set:N = \l_pdnm_opt_debug_bool,
-  debug .default:n = false,
 }
-% Provide command for registering a manipulation.
-% Parameters are a key=value list.  Valid keys are:
-%  patterns - name of a pattern file (full file name),
-%  language - a TeX language identifier,
-%  module - name of a Lua module implementing a manipulation (base file name),
-%  id - a unique ID for the manipulation (interpreted as a Lua string),
-%  debug - a boolean determining if debugging information is written to a file,
-\NewDocumentCommand\PadrinomaRegisterManipulation{m}{%
-  \keys_set:nn {padrinoma} {#1}%
-  % Get language number.
-  \int_new:N\l_pdnm_language_number_int
-  \int_set:Nn\l_pdnm_language_number_int{\int_use:c{l@\l_pdnm_opt_language_tl}}%
-  % Call Lua API of padrinoma package.
+% Parse class and package options.
+\ProcessKeysOptions{padrinoma}
+% Iterate over language identifiers.
+\clist_map_inline:Nn\l_pdnm_opt_language_clist{
+  % Convert language identifiers to numbers and store them in a global
+  % Lua table for later reference.
   \directlua{
-    padrinoma.nlm.register_manipulation(
-      \int_use:N\l_pdnm_language_number_int,
-      '\luaescapestring{\l_pdnm_opt_patterns_tl}',
-      '\luaescapestring{\l_pdnm_opt_module_tl}',
-      '\luaescapestring{\l_pdnm_opt_id_tl}',
-      \bool_if:NTF\l_pdnm_opt_debug_bool{true}{false}
-    )
-  }%
+    local~language = '#1'~
+    local~language_num = \int_use:c{l@#1}~
+    if~type(language_num) == 'number' then~
+      padrinoma.language[language] = language_num~
+    end~
+  }
 }

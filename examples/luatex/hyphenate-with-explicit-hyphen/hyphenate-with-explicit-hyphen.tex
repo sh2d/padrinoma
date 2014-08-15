@@ -4,13 +4,12 @@
 \usepackage{fontspec}
 \usepackage{multicol}
 \usepackage[main=english, ngerman]{babel}
-\usepackage{padrinoma}
-\PadrinomaRegisterManipulation{
-  language = ngerman,
-  patterns = ../../patterns/hyph-de-1996-compound.pat.txt,
-  module = pdnm_hyphenate-with-explicit-hyphen,
-  id = explicit-hyphen,
-  debug = true,
+\usepackage[language=ngerman]{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_hyphenate-with-explicit-hyphen.lua')
 }
 \begin{document}
 This is an example application of the padrinoma package illustrating
