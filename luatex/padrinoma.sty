@@ -66,6 +66,8 @@
   module .value_required:,
   id .tl_set:N = \l_pdnm_opt_id_tl,
   id .value_required:,
+  debug .bool_set:N = \l_pdnm_opt_debug_bool,
+  debug .default:n = false,
 }
 % Provide command for registering a manipulation.
 % Parameters are a key=value list.  Valid keys are:
@@ -73,6 +75,7 @@
 %  language - a TeX language identifier,
 %  module - name of a Lua module implementing a manipulation (base file name),
 %  id - a unique ID for the manipulation (interpreted as a Lua string),
+%  debug - a boolean determining if debugging information is written to a file,
 \NewDocumentCommand\PadrinomaRegisterManipulation{m}{%
   \keys_set:nn {padrinoma} {#1}%
   % Get language number.
@@ -84,7 +87,8 @@
       \int_use:N\l_pdnm_language_number_int,
       '\luaescapestring{\l_pdnm_opt_patterns_tl}',
       '\luaescapestring{\l_pdnm_opt_module_tl}',
-      '\luaescapestring{\l_pdnm_opt_id_tl}'
+      '\luaescapestring{\l_pdnm_opt_id_tl}',
+      \bool_if:NTF\l_pdnm_opt_debug_bool{true}{false}
     )
   }%
 }

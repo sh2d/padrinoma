@@ -389,11 +389,11 @@ local manipulations
 -- property tables.
 -- @param id  A unique identification string associated with a
 -- manipulation.
--- @param is_not_debug_spots  Flag determining if a list of words with
--- spots should be written to a file at the end of the TeX run for
--- debugging purposes.  By default, debugging is active.
+-- @param is_debug_spots  Flag determining if a list of words with spots
+-- should be written to a file at the end of the TeX run for debugging
+-- purposes.  By default, debugging is inactive.
 -- @see deregister_manipulation
-local function register_manipulation(language, pattern_name, module_name, id, is_not_debug_spots)
+local function register_manipulation(language, pattern_name, module_name, id, is_debug_spots)
    local spot = cls_spot:new()
    local fin = kpse.find_file(pattern_name)
    fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
@@ -409,7 +409,7 @@ local function register_manipulation(language, pattern_name, module_name, id, is
          language = language,
          spot = spot,
          f = f,
-         is_debug_spots = not is_not_debug_spots,
+         is_debug_spots = is_debug_spots,
          words_with_spots = {},
          pattern_name = pattern_name,
       }
