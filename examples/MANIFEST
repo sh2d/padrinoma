@@ -24,6 +24,11 @@ This directory contains some Lua(La)TeX example documents demonstrating
 how to apply a particular pattern driven node list manipulation.
 
 
+# `patterns/`
+
+Contains various custom pattern files used in examples and test files.
+
+
 
 <!--
 %%% Local Variables: 
