@@ -171,217 +171,271 @@ local err, warn, info, log = luatexbase.provides_module(module)
 -- Table of manipulations.  Maps strings (ids) to a table containing
 -- information about a manipulation.
 local manipulations
--- A table mapping manipulation id's to tables.  The table pointed to
--- contains words with spots as strings for debugging purposes.  At the
--- end of the LuaTeX run -- at request -- these tables are written to a
--- file.
+-- A table mapping manipulation id's to closures.  At the end of the
+-- LuaTeX run these closures are called and write debugging information
+-- to a file.
 local debug_information
 
 
 
--- Upvalues used while matching patterns against the words in a node
--- list.
+--- Create a custom function that processes a node list.
+-- Argument of the returned function is a node list.  The node list is
+-- scanned for words in the given language.  All words found are matched
+-- against the given patterns.  Return value is a sequence of word
+-- property tables.
 --
--- Current manipulation.
-local manipulation
--- Table of words with spots as strings (for debugging).
-local words_with_spots = {}
--- A sequence of word property tables of the words found in the node
--- list.
-local words
--- This table corresponds to field `nodes` in a word property table.
-local word_nodes
--- This table corresponds to field `exhyphenchars` in a word property
--- table.
-local word_exhyphenchars
--- This table corresponds to field `parents` in a word property table.
-local word_parents
--- Current stack of parent nodes.  Table `word_parents` contains copies
--- of this table.
-local parentstack
--- Flag.
-local is_within_word
+-- @param pattern_name  Name of a pure text UTF-8 pattern file.
+-- @param language_num  A language number patterns are associated with.
+-- @param id  A unique identification string associated with a
+-- manipulation.
+-- @param is_debug  If this flag is <code>true</code>, at the end of the
+-- TeX run, a list of words with spots according to the given patterns
+-- is written to a file for debugging purposes.  By default, debugging
+-- is inactive.
+-- @return Custom node list scanner funtion.
+-- @see match_patterns
+local function create_node_list_scanner(pattern_name, language_num, id, is_debug)
+
+   -- Upvalues used while matching patterns against the words in a node
+   -- list.
+   --
+   -- Spot object used for pattern matching.
+   local spot
+   -- Table of words with spots as strings (for debugging).
+   local words_with_spots = {}
+   --
+   -- A sequence of word property tables of the words found in the node
+   -- list.
+   local words
+   -- This table corresponds to field `nodes` in a word property table.
+   local word_nodes
+   -- This table corresponds to field `exhyphenchars` in a word property
+   -- table.
+   local word_exhyphenchars
+   -- This table corresponds to field `parents` in a word property
+   -- table.
+   local word_parents
+   -- Current stack of parent nodes.  Table `word_parents` contains
+   -- copies of this table.
+   local parentstack
+   -- Flag.
+   local is_within_word
 
 
-
---- (internal) Initialize a new current word.
--- Prepare a new word decomposition.
-local function new_current_word()
-   -- Flag current word mode.
-   is_within_word = true
-   -- Initialize some upvalues.
-   word_nodes = {}
-   word_exhyphenchars = nil
-   word_parents = {}
-   parentstack = {}
-   -- Prepare new word decomposition.
-   manipulation.spot:decomposition_start()
-   -- Process leading boundary letter.
-   manipulation.spot:decomposition_advance(manipulation.spot.boundary_letter)
-end
-
-
-
---- (internal) Finish the current word.
--- Finish word decomposition.  Calculate spot positions for the word and
--- store word properties in a property table.
-local function finish_current_word()
-   -- Reset current word flag.
-   is_within_word = false
-   -- Ignore empty words, because we cannot access their nodes.
-   if #word_nodes == 0 then
-      return
+   --- Initialize a new current word.
+   -- Prepare a new word decomposition.
+   local function new_current_word()
+      -- Flag current word mode.
+      is_within_word = true
+      -- Initialize some upvalues.
+      word_nodes = {}
+      word_exhyphenchars = nil
+      word_parents = {}
+      parentstack = {}
+      -- Prepare new word decomposition.
+      spot:decomposition_start()
+      -- Process leading boundary letter.
+      spot:decomposition_advance(spot.boundary_letter)
    end
-   -- Last node of word.
-   local last_glyph = word_nodes[#word_nodes]
-   -- Is this a word of the current pattern language?
-   if last_glyph.lang ~= manipulation.language then
-      return
-   end
-   -- Adjust spot mins.  Must be done before finishing decomposition.
-   manipulation.spot:set_spot_mins(last_glyph.left, last_glyph.right)
-   -- Process trailing boundary letter.
-   manipulation.spot:decomposition_advance(manipulation.spot.boundary_letter)
-   -- Finish decomposition.
-   manipulation.spot:decomposition_finish()
-   -- Insert processed word into word table.
-   Tinsert(words, {
-              nodes = word_nodes,
-              exhyphenchars = word_exhyphenchars,
-              parents = word_parents,
-              levels = manipulation.spot.word_levels,
-                  }
-   )
-   -- Debug spots?
-   if manipulation.is_debug then
-      local chars = {}
-      for _, n in ipairs(word_nodes) do
-         Tinsert(chars, Uchar(n.char))
+
+
+   --- Finish the current word.
+   -- Finish word decomposition.  Calculate spot positions for the word
+   -- and store word properties in a property table.
+   local function finish_current_word()
+      -- Reset current word flag.
+      is_within_word = false
+      -- Ignore empty words, because we cannot access their nodes.
+      if #word_nodes == 0 then
+         return
       end
-      words_with_spots[Tconcat(manipulation.spot:to_word_with_spots(chars, manipulation.spot.word_levels))] = true
+      -- Last node of word.
+      local last_glyph = word_nodes[#word_nodes]
+      -- Is this a word of the current pattern language?
+      if last_glyph.lang ~= language_num then
+         return
+      end
+      -- Adjust spot mins.  Must be done before finishing decomposition.
+      spot:set_spot_mins(last_glyph.left, last_glyph.right)
+      -- Process trailing boundary letter.
+      spot:decomposition_advance(spot.boundary_letter)
+      -- Finish decomposition.
+      spot:decomposition_finish()
+      -- Insert processed word into word table.
+      Tinsert(words, {
+                 nodes = word_nodes,
+                 exhyphenchars = word_exhyphenchars,
+                 parents = word_parents,
+                 levels = spot.word_levels,
+                     }
+      )
+      -- Debug spots?
+      if is_debug then
+         local chars = {}
+         for _, n in ipairs(word_nodes) do
+            Tinsert(chars, Uchar(n.char))
+         end
+         words_with_spots[Tconcat(spot:to_word_with_spots(chars, spot.word_levels))] = true
+      end
    end
-end
 
 
-
---- (internal) Scan a node list for words.
--- Collects all words subject to pattern matching in the node list.
--- Match a spot object against the letters (glyph nodes) of the words
--- and store results in property tables.<br />
---
--- The current implementation doesn't fully comply with TeX's notion of
--- 'words subject to hyphenation'.  As an example, words next to an
--- <code>\hbox</code> aren't hyphenated by TeX and changes in the
--- language imply word boundaries.  Here's a link to <a
--- href="https://foundry.supelec.fr/scm/viewvc.php/trunk/source/texk/web2c/luatexdir/lang/texlang.w?root=luatex&view=markup">the
--- relevant LuaTeX C source code</a>.  See <a
--- href="http://tug.org/pipermail/tex-hyphen/2014-January/001071.html">this
--- mail</a> on the tex-hyphen list.
---
--- @param head  Node list.
--- @return Upvalues.
-local function do_pattern_match_list(head)
-   for n in Ntraverse(head) do
-      local nid = n.id
-      if nid == GLYPH then
-         local lc = TEXgetlccode(n.char)
-         if lc > 0 then
-            -- Initialize a new word?
+   --- Scan a node list for words.
+   -- Collects all words subject to pattern matching in the node list.
+   -- Match a spot object against the letters (glyph nodes) of the words
+   -- and store results in property tables.<br />
+   --
+   -- The current implementation doesn't fully comply with TeX's notion
+   -- of 'words subject to hyphenation'.  As an example, words next to
+   -- an <code>\hbox</code> aren't hyphenated by TeX and changes in the
+   -- language imply word boundaries.  Here's a link to <a
+   -- href="https://foundry.supelec.fr/scm/viewvc.php/trunk/source/texk/web2c/luatexdir/lang/texlang.w?root=luatex&view=markup">the
+   -- relevant LuaTeX C source code</a>.  See <a
+   -- href="http://tug.org/pipermail/tex-hyphen/2014-January/001071.html">this
+   -- mail</a> on the tex-hyphen list.
+   --
+   -- @param head  Node list.
+   -- @return Upvalues.
+   local function do_scan_node_list(head)
+      for n in Ntraverse(head) do
+         local nid = n.id
+         if nid == GLYPH then
+            local lc = TEXgetlccode(n.char)
+            if lc > 0 then
+               -- Initialize a new word?
+               if not is_within_word then
+                  new_current_word()
+               end
+               -- Fundamental glyph or automatic ligature?
+               local components = n.components
+               if not components then
+                  -- Fundamental glyph.
+                  --
+                  -- Add node to table.
+                  Tinsert(word_nodes, n)
+                  if n.char == tex.exhyphenchar then
+                     word_exhyphenchars = word_exhyphenchars or {}
+                     Tinsert(word_exhyphenchars, #word_nodes)
+                  end
+                  -- Advance decomposition.
+                  spot:decomposition_advance(Uchar(lc))
+                  -- Add copy of current parent node stack to table.
+                  local stack_copy
+                  if #parentstack > 0 then
+                     stack_copy = {}
+                     for i,parent in ipairs(parentstack) do
+                        stack_copy[i] = parent
+                     end
+                  end
+                  word_parents[#word_nodes] = stack_copy
+               else
+                  -- Automatic ligature.
+                  --
+                  -- Update parent node stack and recurse into component
+                  -- node list.
+                  Tinsert(parentstack, n)
+                  do_scan_node_list(components)
+                  Tremove(parentstack)
+               end
+            elseif is_within_word then
+               finish_current_word()
+            end
+         elseif nid == DISC then
             if not is_within_word then
                new_current_word()
             end
-            -- Fundamental glyph or automatic ligature?
-            local components = n.components
-            if not components then
-               -- Fundamental glyph.
-               --
-               -- Add node to table.
-               Tinsert(word_nodes, n)
-               if n.char == tex.exhyphenchar then
-                  word_exhyphenchars = word_exhyphenchars or {}
-                  Tinsert(word_exhyphenchars, #word_nodes)
-               end
-               -- Advance decomposition.
-               manipulation.spot:decomposition_advance(Uchar(lc))
-               -- Add copy of current parent node stack to table.
-               local stack_copy
-               if #parentstack > 0 then
-                  stack_copy = {}
-                  for i,parent in ipairs(parentstack) do
-                     stack_copy[i] = parent
-                  end
-               end
-               word_parents[#word_nodes] = stack_copy
-            else
-               -- Automatic ligature.
-               --
-               -- Update parent node stack and recurse into component
+            -- Does the discretionary contain components belonging to a
+            -- non-hyphenated word?
+            local replace = n.replace
+            if replace then
+               -- Update parent node stack and recurse into replacment
                -- node list.
                Tinsert(parentstack, n)
-               do_pattern_match_list(components)
+               do_scan_node_list(replace)
                Tremove(parentstack)
             end
-         elseif is_within_word then
-            finish_current_word()
-         end
-      elseif nid == DISC then
-         if not is_within_word then
-            new_current_word()
-         end
-         -- Does the discretionary contain components belonging to a
-         -- non-hyphenated word?
-         local replace = n.replace
-         if replace then
-            -- Update parent node stack and recurse into replacment
-            -- node list.
-            Tinsert(parentstack, n)
-            do_pattern_match_list(replace)
-            Tremove(parentstack)
-         end
-      elseif (nid == WHATSIT and nsubtype == USER_DEFINED)
-      then
-         -- Ignore node.  Don't change state.
-      else
-         -- Non-word node.
-         if is_within_word then
-            finish_current_word()
+         elseif (nid == WHATSIT and nsubtype == USER_DEFINED)
+         then
+            -- Ignore node.  Don't change state.
+         else
+            -- Non-word node.
+            if is_within_word then
+               finish_current_word()
+            end
          end
       end
    end
-end
 
 
-
---- (internal) Match patterns against the words in a node list.
--- The spot object of the given manipulation table is matched against
--- all words found in the node list.
---
--- @param head  A node list.
--- @param id  Id of a manipulation to apply.
--- @return A sequence of word property tables.
--- @see do_pattern_match_list
-local function pattern_match_list(head, id)
-   -- Initialize upvalues.
-   manipulation = manipulations[id]
-   words_with_spots = debug_information[id]
-   words = {}
-   is_within_word = false
-   -- Process list.
-   do_pattern_match_list(head)
-   -- Post-process last word.
-   if is_within_word then
-      finish_current_word()
+   --- Set-up a new node list scan.
+   --
+   -- @param head  A node list.
+   -- @return A sequence of word property tables.
+   -- @see do_scan_node_list
+   local function scan_node_list(head)
+      -- Initialize upvalues.
+      words = {}
+      is_within_word = false
+      -- Process list.
+      do_scan_node_list(head)
+      -- Post-process last word.
+      if is_within_word then
+         finish_current_word()
+      end
+      -- Remove unneeded references in upvalues.
+      spot.word_levels = nil
+      word_nodes = nil
+      word_exhyphenchars = nil
+      word_parents = nil
+      parent_stack = nil
+      local twords = words
+      words = nil
+      return twords
    end
-   -- Remove unneeded references in upvalues.
-   manipulation.spot.word_levels = nil
-   word_nodes = nil
-   word_exhyphenchars = nil
-   word_parents = nil
-   parent_stack = nil
-   local twords = words
-   words = nil
-   return twords
+
+
+   --- Write debugging information associated to the node list scanner.
+   -- If the debug flag is <code>true</code>, write debugging
+   -- information at the end of the LuaTeX run to a file.  Debugging
+   -- information consists of a list of all words handled by the node
+   -- list scanner with hyphens inserted at spot positions.  File name
+   -- is the pattern file name augmented by the extension
+   -- <code>.spots</code>.
+   local function write_debug_information()
+      if is_debug then
+         -- Sort words.
+         local a = {}
+         for k,_ in pairs(words_with_spots) do
+            Tinsert(a, k)
+         end
+         Tsort(a)
+         -- Remove all path information from pattern file name.
+         local plain_pattern_name = Ugsub(pattern_name, '^.*/', '')
+         -- Write words to file.
+         local fout = assert(io.open(plain_pattern_name .. '.spots', 'w'))
+         for _,v in ipairs(a) do
+            fout:write(v, '\n')
+         end
+         fout:close()
+      end
+   end
+
+
+   -- Initialize custom spot object.
+   spot = cls_spot:new()
+   do
+      local fin = kpse.find_file(pattern_name)
+      fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
+      local count = spot:read_patterns(fin)
+      fin:close()
+      info(count .. ' patterns read from file ' .. pattern_name)
+   end
+   -- Store custom function writing debug information to a file.
+   debug_information[id] = write_debug_information
+   -- Return custom pattern matching function.
+   return scan_node_list
 end
+M.create_node_list_scanner = create_node_list_scanner
 
 
 
@@ -389,7 +443,7 @@ end
 -- All manipulations registered are executed in the `hyphenate`
 -- call-back.
 --
--- @param language  A language (number) patterns are associated with.
+-- @param language_num  A language number patterns are associated with.
 -- @param pattern_name  File name of a pure text UTF-8 pattern file.
 -- @param module_name  File name of a module implementing a particular
 -- node manipulation.  The module must return a function, which is
@@ -403,27 +457,16 @@ end
 -- should be written to a file at the end of the TeX run for debugging
 -- purposes.  By default, debugging is inactive.
 -- @see deregister_manipulation
-local function register_manipulation(language, pattern_name, module_name, id, is_debug)
-   local spot = cls_spot:new()
-   local fin = kpse.find_file(pattern_name)
-   fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
-   local count = spot:read_patterns(fin)
-   fin:close()
-   info(count .. ' patterns read from file ' .. pattern_name)
+local function register_manipulation(language_num, pattern_name, module_name, id, is_debug)
    local f = require(module_name)
    if type(f) ~= 'function' then
       err('Bad manipulation module ' .. module_name .. ': expected return value of type function, got ' .. type(f))
    end
    if not manipulations[id] then
       manipulations[id] = {
-         language = language,
-         spot = spot,
+         scan_node_list = create_node_list_scanner(pattern_name, language_num, id, is_debug),
          f = f,
-         is_debug = is_debug,
-         pattern_name = pattern_name,
       }
-      -- Table containing words with spots as strings for debugging purposes.
-      debug_information[id] = {}
    end
 end
 M.register_manipulation = register_manipulation
@@ -457,9 +500,9 @@ local function __cb_hyphenate(head)
    -- Apply regular hyphenation.
    lang.hyphenate(head)
    -- Apply additional pattern driven node manipulation.
-   for id, manipulation in pairs(manipulations) do
+   for _, manipulation in pairs(manipulations) do
       -- Process words in node list.
-      local words = pattern_match_list(head, id)
+      local words = manipulation.scan_node_list(head)
       -- Apply user-defined manipulation.
       manipulation.f(head, words)
    end
@@ -472,23 +515,8 @@ end
 -- Write all words handled by a manipulation to a file.  File name is
 -- the pattern file name augmented by the extension <code>.spots</code>.
 local function __cb_write_debug_information()
-   for id, manipulation in pairs(manipulations) do
-      if manipulation.is_debug then
-         -- Sort words.
-         local a = {}
-         for k,_ in pairs(debug_information[id]) do
-            Tinsert(a, k)
-         end
-         Tsort(a)
-         -- Remove all path information from pattern file name.
-         local pattern_name = Ugsub(manipulation.pattern_name, '^.*/', '')
-         -- Write words to file.
-         local fout = assert(io.open(pattern_name .. '.spots', 'w'))
-         for _,v in ipairs(a) do
-            fout:write(v, '\n')
-         end
-         fout:close()
-      end
+   for _, write_debug_information in pairs(debug_information) do
+      write_debug_information()
    end
 end
 
