@@ -54,19 +54,37 @@
 }
 % We use expl3 syntax.
 \RequirePackage{xparse}
+% Package interface uses key-value syntax.
+\RequirePackage{l3keys2e}
+% Declare keys.
+\keys_define:nn {padrinoma} {
+  language .tl_set:N = \l_pdnm_opt_language_tl,
+  language .value_required:,
+  patterns .tl_set:N = \l_pdnm_opt_patterns_tl,
+  patterns .value_required:,
+  module .tl_set:N = \l_pdnm_opt_module_tl,
+  module .value_required:,
+  id .tl_set:N = \l_pdnm_opt_id_tl,
+  id .value_required:,
+}
 % Provide command for registering a manipulation.
-% Parameters are:
-%  * a TeX language identifier,
-%  * name of a pattern file (full file name),
-%  * name of a Lua module implementing a manipulation (base file name),
-%  * a unique ID for the manipulation (interpreted as a Lua string).
-\NewDocumentCommand\PadrinomaRegisterManipulation{m m m m}{%
+% Parameters are a key=value list.  Valid keys are:
+%  patterns - name of a pattern file (full file name),
+%  language - a TeX language identifier,
+%  module - name of a Lua module implementing a manipulation (base file name),
+%  id - a unique ID for the manipulation (interpreted as a Lua string),
+\NewDocumentCommand\PadrinomaRegisterManipulation{m}{%
+  \keys_set:nn {padrinoma} {#1}%
+  % Get language number.
+  \int_new:N\l_pdnm_language_number_int
+  \int_set:Nn\l_pdnm_language_number_int{\int_use:c{l@\l_pdnm_opt_language_tl}}%
+  % Call Lua API of padrinoma package.
   \directlua{
     padrinoma.nlm.register_manipulation(
-      \int_use:c{l@#1},
-      '\luaescapestring{#2}',
-      '\luaescapestring{#3}',
-      '\luaescapestring{#4}'
+      \int_use:N\l_pdnm_language_number_int,
+      '\luaescapestring{\l_pdnm_opt_patterns_tl}',
+      '\luaescapestring{\l_pdnm_opt_module_tl}',
+      '\luaescapestring{\l_pdnm_opt_id_tl}'
     )
   }%
 }

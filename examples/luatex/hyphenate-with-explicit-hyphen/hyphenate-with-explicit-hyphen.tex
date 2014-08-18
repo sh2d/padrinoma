@@ -5,12 +5,12 @@
 \usepackage{multicol}
 \usepackage[main=english, ngerman]{babel}
 \usepackage{padrinoma}
-% Parameters are:
-%  * a TeX language identifier,
-%  * name of a pattern file (full file name),
-%  * name of a Lua module implementing a manipulation (base file name),
-%  * a unique ID for the manipulation (interpreted as a Lua string).
-\PadrinomaRegisterManipulation{ngerman}{../../patterns/hyph-de-1996-compound.pat.txt}{pdnm_hyphenate-with-explicit-hyphen}{explicit-hyphen}
+\PadrinomaRegisterManipulation{
+  language = ngerman,
+  patterns = ../../patterns/hyph-de-1996-compound.pat.txt,
+  module = pdnm_hyphenate-with-explicit-hyphen,
+  id = explicit-hyphen,
+}
 \begin{document}
 This is an example application of the padrinoma package illustrating
 automatic hyphenation of words containing a hyphen with Lua\TeX.  No

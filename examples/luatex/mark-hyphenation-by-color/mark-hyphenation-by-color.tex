@@ -4,12 +4,12 @@
 \usepackage{fontspec}
 \usepackage[latin]{babel}
 \usepackage{padrinoma}
-% Parameters are:
-%  * a TeX language identifier,
-%  * name of a pattern file (full file name),
-%  * name of a Lua module implementing a manipulation (base file name),
-%  * a unique ID for the manipulation (interpreted as a Lua string).
-\PadrinomaRegisterManipulation{latin}{hyph-la.pat.txt}{pdnm_hyph-mark-by-color}{mark}
+\PadrinomaRegisterManipulation{
+  language = latin,
+  patterns = hyph-la.pat.txt,
+  module = pdnm_hyph-mark-by-color,
+  id = mark,
+}
 \usepackage{lipsum}
 \begin{document}
 \lipsum
