@@ -166,11 +166,26 @@ local err, warn, info, log = luatexbase.provides_module(module)
 
 
 
+-- Module-wide variables.
+--
+-- Table of manipulations.  Maps strings (ids) to a table containing
+-- information about a manipulation.
+local manipulations
+-- A table mapping manipulation id's to tables.  The table pointed to
+-- contains words with spots as strings for debugging purposes.  At the
+-- end of the LuaTeX run -- at request -- these tables are written to a
+-- file.
+local debug_information
+
+
+
 -- Upvalues used while matching patterns against the words in a node
 -- list.
 --
 -- Current manipulation.
 local manipulation
+-- Table of words with spots as strings (for debugging).
+local words_with_spots = {}
 -- A sequence of word property tables of the words found in the node
 -- list.
 local words
@@ -238,12 +253,12 @@ local function finish_current_word()
                   }
    )
    -- Debug spots?
-   if manipulation.is_debug_spots then
+   if manipulation.is_debug then
       local chars = {}
       for _, n in ipairs(word_nodes) do
          Tinsert(chars, Uchar(n.char))
       end
-      manipulation.words_with_spots[Tconcat(manipulation.spot:to_word_with_spots(chars, manipulation.spot.word_levels))] = true
+      words_with_spots[Tconcat(manipulation.spot:to_word_with_spots(chars, manipulation.spot.word_levels))] = true
    end
 end
 
@@ -342,12 +357,13 @@ end
 -- all words found in the node list.
 --
 -- @param head  A node list.
--- @param m  Table with properties of the manipulation to apply.
+-- @param id  Id of a manipulation to apply.
 -- @return A sequence of word property tables.
 -- @see do_pattern_match_list
-local function pattern_match_list(head, m)
+local function pattern_match_list(head, id)
    -- Initialize upvalues.
-   manipulation = m
+   manipulation = manipulations[id]
+   words_with_spots = debug_information[id]
    words = {}
    is_within_word = false
    -- Process list.
@@ -369,12 +385,6 @@ end
 
 
 
--- Table of manipulations.  Maps strings (ids) to a table containing
--- information about a manipulation.
-local manipulations
-
-
-
 --- Register a new pattern driven node manipulation.
 -- All manipulations registered are executed in the `hyphenate`
 -- call-back.
@@ -389,11 +399,11 @@ local manipulations
 -- property tables.
 -- @param id  A unique identification string associated with a
 -- manipulation.
--- @param is_debug_spots  Flag determining if a list of words with spots
+-- @param is_debug  Flag determining if a list of words with spots
 -- should be written to a file at the end of the TeX run for debugging
 -- purposes.  By default, debugging is inactive.
 -- @see deregister_manipulation
-local function register_manipulation(language, pattern_name, module_name, id, is_debug_spots)
+local function register_manipulation(language, pattern_name, module_name, id, is_debug)
    local spot = cls_spot:new()
    local fin = kpse.find_file(pattern_name)
    fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
@@ -409,10 +419,11 @@ local function register_manipulation(language, pattern_name, module_name, id, is
          language = language,
          spot = spot,
          f = f,
-         is_debug_spots = is_debug_spots,
-         words_with_spots = {},
+         is_debug = is_debug,
          pattern_name = pattern_name,
       }
+      -- Table containing words with spots as strings for debugging purposes.
+      debug_information[id] = {}
    end
 end
 M.register_manipulation = register_manipulation
@@ -430,6 +441,7 @@ local function deregister_manipulation(id)
    local is_active = manipulations[id]
    if is_active then
       manipulations[id] = nil
+      debug_information[id] = nil
    end
    return is_active and true or false
 end
@@ -445,9 +457,9 @@ local function __cb_hyphenate(head)
    -- Apply regular hyphenation.
    lang.hyphenate(head)
    -- Apply additional pattern driven node manipulation.
-   for _, manipulation in pairs(manipulations) do
+   for id, manipulation in pairs(manipulations) do
       -- Process words in node list.
-      local words = pattern_match_list(head, manipulation)
+      local words = pattern_match_list(head, id)
       -- Apply user-defined manipulation.
       manipulation.f(head, words)
    end
@@ -456,15 +468,15 @@ end
 
 
 
---- (internal) Write a list of words with spots to a file.
--- Write all words associated with a pattern set to a file.  File name
--- is the pattern file name plus the extension <code>.spots</code>.
-local function __cb_write_words()
-   for _, manipulation in pairs(manipulations) do
-      if manipulation.is_debug_spots then
+--- (internal) Write debugging information.
+-- Write all words handled by a manipulation to a file.  File name is
+-- the pattern file name augmented by the extension <code>.spots</code>.
+local function __cb_write_debug_information()
+   for id, manipulation in pairs(manipulations) do
+      if manipulation.is_debug then
          -- Sort words.
          local a = {}
-         for k,_ in pairs(manipulation.words_with_spots) do
+         for k,_ in pairs(debug_information[id]) do
             Tinsert(a, k)
          end
          Tsort(a)
@@ -486,10 +498,12 @@ end
 local function __init()
    -- Initialize manipulation table.
    manipulations = {}
+   -- Initialize debugging information table.
+   debug_information = {}
    -- Register hyphenate call-back.
    luatexbase.add_to_callback('hyphenate', __cb_hyphenate, 'pdnm_hyphenate')
    -- Register stop run call-back for spot debugging output.
-   luatexbase.add_to_callback('stop_run', __cb_write_words, 'pdnm_debug_spots')
+   luatexbase.add_to_callback('stop_run', __cb_write_debug_information, 'pdnm_write_debug_information')
 end
 
 
