@@ -36,16 +36,12 @@
 %% mit diesem Programm erhalten haben. Wenn nicht, siehe
 %% <http://www.gnu.org/licenses/>.
 %%
-\ProvidesPackage{padrinoma}
-  [2014/02/19 v0.1 Pattern driven node manipulation in LuaTeX (SH)]
+\RequirePackage{expl3}
+\ProvidesExplPackage{padrinoma}{2014/08/19}{0.2}{Pattern driven node manipulation in LuaTeX (SH)}
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 % Test for the LuaTeX engine.
-\RequirePackage{ifluatex}
-\ifluatex
-\else
-\PackageError{padrinoma}{LuaTeX engine required}{You could try with the
-  `lualatex' command.}
-\fi
+\msg_new:nnn{padrinoma}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
+\luatex_if_engine:TF{}{\msg_fatal:nn{padrinoma}{bad-engine}}
 % Lua module version management.
 \RequirePackage{luatexbase-modutils}
 % LuaTeX call-back management.
@@ -67,7 +63,7 @@
 \NewDocumentCommand\PadrinomaRegisterManipulation{m m m m}{%
   \directlua{
     padrinoma.nlm.register_manipulation(
-      \the\csname l@#1\endcsname,
+      \int_use:c{l@#1},
       '\luaescapestring{#2}',
       '\luaescapestring{#3}',
       '\luaescapestring{#4}'
