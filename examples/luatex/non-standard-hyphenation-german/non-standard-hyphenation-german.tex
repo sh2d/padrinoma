@@ -4,13 +4,7 @@
 \usepackage{fontspec}
 \usepackage{multicol}
 \usepackage[main=english, german]{babel}
-\usepackage[language=german]{padrinoma}
-% LuaTeX call-back management.
-\RequirePackage{luatexbase-mcb}
-% Set-up node list manipulation in Lua.
-\directlua{
-  dofile('pdnm_nonstd-hyph-de-1901.lua')
-}
+\usepackage{pdnm_nonstd-hyph-de-1901}
 \begin{document}
 
 \section{Automatic non-standard hyphenation with Lua\TeX}

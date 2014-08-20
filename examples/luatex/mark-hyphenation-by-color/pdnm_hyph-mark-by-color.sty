@@ -1,0 +1,15 @@
+%% -*- coding: utf-8 -*-
+\RequirePackage{expl3}
+\ProvidesExplPackage{pdnm_hyph-mark-by-color}{2014/08/20}{0.1}{Mark valid hyphenation points by color (SH)}
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+% Test for the LuaTeX engine.
+\msg_new:nnn{pdnm_hyph-mark-by-color}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
+\luatex_if_engine:TF{}{\msg_fatal:nn{pdnm_hyph-mark-by-color}{bad-engine}}
+% Load padrinoma package and preprocess all required languages.
+\usepackage[language=latin]{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_hyph-mark-by-color.lua')
+}

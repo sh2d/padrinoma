@@ -3,13 +3,7 @@
 \documentclass{article}
 \usepackage{fontspec}
 \usepackage[latin]{babel}
-\usepackage[language=latin]{padrinoma}
-% LuaTeX call-back management.
-\RequirePackage{luatexbase-mcb}
-% Set-up node list manipulation in Lua.
-\directlua{
-  dofile('pdnm_hyph-mark-by-color.lua')
-}
+\usepackage{pdnm_hyph-mark-by-color}
 \usepackage{lipsum}
 \begin{document}
 \lipsum

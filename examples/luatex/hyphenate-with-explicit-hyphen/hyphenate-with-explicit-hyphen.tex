@@ -4,13 +4,7 @@
 \usepackage{fontspec}
 \usepackage{multicol}
 \usepackage[main=english, ngerman]{babel}
-\usepackage[language=ngerman]{padrinoma}
-% LuaTeX call-back management.
-\RequirePackage{luatexbase-mcb}
-% Set-up node list manipulation in Lua.
-\directlua{
-  dofile('pdnm_hyphenate-with-explicit-hyphen.lua')
-}
+\usepackage{pdnm_hyphenate-with-explicit-hyphen}
 \begin{document}
 This is an example application of the padrinoma package illustrating
 automatic hyphenation of words containing a hyphen with Lua\TeX.  No

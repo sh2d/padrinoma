@@ -4,13 +4,7 @@
 \usepackage{fontspec}
 \setmainfont{TeX Gyre Pagella}
 \usepackage[latin]{babel}
-\usepackage[language=latin]{padrinoma}
-% LuaTeX call-back management.
-\RequirePackage{luatexbase-mcb}
-% Set-up node list manipulation in Lua.
-\directlua{
-  dofile('pdnm_hyph-mark-by-glyph.lua')
-}
+\usepackage{pdnm_hyph-mark-by-glyph}
 \usepackage{lipsum}
 \begin{document}
 \lipsum
