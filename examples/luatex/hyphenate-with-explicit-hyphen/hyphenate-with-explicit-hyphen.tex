@@ -28,10 +28,10 @@ adjusted in file
 See \texttt{log} file for a list of hyphenated German words containing
 explicit hyphens.  Hyphenation results can be found after the colon in
 lines starting \verb+[pdnm]+.  Hyphens in input are replaced by an equal
-sign in output.  In the example \emph{Notaus-Schalter}, if inner word
-hyphenation minima were set to smaller values, that would have been
-hyphenated \emph{Not-aus=Schalter} as \emph{Notaus} itself is a compound
-word and recognized as such by the given patterns.
+sign in output.  In example \emph{Fußball-Weltmeisterschaft}, if inner
+word hyphenation minima were set to smaller values, that would have been
+hyphenated \emph{Fuß-ball=Welt-meisterschaft} as \emph{Fußball} is a
+compound word, too, and recognized as such by the given patterns.
 
 \begin{otherlanguage}{ngerman}
 \showhyphens{
@@ -39,6 +39,9 @@ word and recognized as such by the given patterns.
   Notaus-Schalter
   Arbeiter-Unfallversicherung
   Zwei-Drittel-Abstimmungsmehrheit
+  $\alpha$-Zerfallsprozess
+  Fußball-Weltmeisterschaft
+  XYZ-Parteitag
 }
 \end{otherlanguage}
 \end{document}
