@@ -44,33 +44,23 @@
 \luatex_if_engine:TF{}{\msg_fatal:nn{padrinoma}{bad-engine}}
 % Lua module version management.
 \RequirePackage{luatexbase-modutils}
-% Load padrinoma manipulation module.
+% Create a global Lua table for translating language identifiers to
+% numbers.  Babel macro \bbl@languages contains language information in
+% the form
+% \bbl@elt{<language-name>}{<number>}{<patterns-file>}{<exceptions-file>}.
+% See threads '\directlua in LaTeX3' and 'iterating over all languages'
+% on latex-l from August 2014,
+% <URL:https://listserv.uni-heidelberg.de/cgi-bin/wa?A0=LATEX-L>.
+\begingroup
+\def\bbl@elt#1#2#3#4{/#1/#2/#3/#4/}
 \directlua name {padrinoma}{
   % Reserve a global variable for our namespace.
-  padrinoma = {}
-  % Set-up a language identifier to language number translation table.
-  padrinoma.language = {}
+  padrinoma = padrinoma~or {}~
+  % Global table translating language identifiers to numbers.
+  padrinoma.language_num = {}~
+  local~languages = '\luatexluaescapestring{\bbl@languages}'~
+  for~language, num, pattern, ex~in~unicode.utf8.gmatch(languages, '/(.-)/(.-)/(.-)/(.-)/') do~
+    padrinoma.language_num[language] = tonumber(num)~
+  end~
 }
-% We use expl3 syntax.
-\RequirePackage{xparse}
-% Package interface uses key-value syntax.
-\RequirePackage{l3keys2e}
-% Declare keys.
-\keys_define:nn {padrinoma} {
-  language .clist_set:N = \l_pdnm_opt_language_clist,
-  language .value_required:,
-}
-% Parse class and package options.
-\ProcessKeysOptions{padrinoma}
-% Iterate over language identifiers.
-\clist_map_inline:Nn\l_pdnm_opt_language_clist{
-  % Convert language identifiers to numbers and store them in a global
-  % Lua table for later reference.
-  \directlua{
-    local~language = '#1'~
-    local~language_num = \int_use:c{l@#1}~
-    if~type(language_num) == 'number' then~
-      padrinoma.language[language] = language_num~
-    end~
-  }
-}
+\endgroup

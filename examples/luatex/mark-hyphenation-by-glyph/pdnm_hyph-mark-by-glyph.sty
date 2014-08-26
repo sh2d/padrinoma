@@ -5,8 +5,8 @@
 % Test for the LuaTeX engine.
 \msg_new:nnn{pdnm_hyph-mark-by-glyph}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
 \luatex_if_engine:TF{}{\msg_fatal:nn{pdnm_hyph-mark-by-glyph}{bad-engine}}
-% Load padrinoma package and preprocess all required languages.
-\usepackage[language=latin]{padrinoma}
+% Load padrinoma package.
+\usepackage{padrinoma}
 % LuaTeX call-back management.
 \RequirePackage{luatexbase-mcb}
 % Set-up node list manipulation in Lua.

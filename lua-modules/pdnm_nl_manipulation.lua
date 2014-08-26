@@ -428,7 +428,7 @@ local function create_node_list_scanner(pattern_name, language, is_debug)
       info(count .. ' patterns read from file ' .. pattern_name)
    end
    -- Determine language number associated with spot object.
-   if type(language) == 'string' then language_num = padrinoma.language[language]
+   if type(language) == 'string' then language_num = padrinoma.language_num[language]
    else language_num = language end
    if type(language_num) ~= 'number' then
       warn('Cannot determine language number for argument \'' .. tostring(language) .. '\'')
