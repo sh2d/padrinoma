@@ -297,17 +297,30 @@ local function create_node_list_scanner(pattern_name, language, is_debug)
       for n in Ntraverse(head) do
          local nid = n.id
          if nid == GLYPH then
-            local lc = TEXgetlccode(n.char)
-            if lc > 0 then
-               -- Initialize a new word?
+            -- Automatic ligature or fundamental glyph?
+            local components = n.components
+            if components then
+               -- Automatic ligature.
+               --
+               -- New word?
                if not is_within_word then
                   new_current_word()
                end
-               -- Fundamental glyph or automatic ligature?
-               local components = n.components
-               if not components then
-                  -- Fundamental glyph.
+               -- Update parent node stack and recurse into component
+               -- node list.
+               Tinsert(parentstack, n)
+               do_scan_node_list(components)
+               Tremove(parentstack)
+            else
+               -- Fundamental glyph.
+               local lc = TEXgetlccode(n.char)
+               if lc > 0 then
+                  -- Letter glyph.
                   --
+                  -- New word?
+                  if not is_within_word then
+                     new_current_word()
+                  end
                   -- Add node to table.
                   Tinsert(word_nodes, n)
                   if n.char == tex.exhyphenchar then
@@ -326,16 +339,11 @@ local function create_node_list_scanner(pattern_name, language, is_debug)
                   end
                   word_parents[#word_nodes] = stack_copy
                else
-                  -- Automatic ligature.
-                  --
-                  -- Update parent node stack and recurse into component
-                  -- node list.
-                  Tinsert(parentstack, n)
-                  do_scan_node_list(components)
-                  Tremove(parentstack)
+                  -- Non-letter glyph.
+                  if is_within_word then
+                     finish_current_word()
+                  end
                end
-            elseif is_within_word then
-               finish_current_word()
             end
          elseif nid == DISC then
             if not is_within_word then
