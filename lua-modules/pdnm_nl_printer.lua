@@ -90,11 +90,15 @@ local Ntraverse = node.traverse
 local Ntype = node.type
 local Sformat = string.format
 local Srep = string.rep
+local TEXgetlccode = tex.getlccode
 local Uchar = unicode.utf8.char
 
 local DISC = node.id('disc')
+local GLUE = node.id('glue')
 local GLYPH = node.id('glyph')
 local HLIST = node.id('hlist')
+local KERN = node.id('kern')
+local PENALTY = node.id('penalty')
 local VLIST = node.id('vlist')
 
 
@@ -152,7 +156,7 @@ local function new_printer(grep)
       [GLYPH] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+char: %s %#-8X comp: %1s lang: %3d font: %3d\n', grep_indent, Uchar(n.char), n.char, n.components and 't' or 'n', n.lang, n.font))
-         texio.write_nl(Sformat('%s+left: %3d right: %3d uchyph: %3d\n', grep_indent, n.left, n.right, n.uchyph))
+         texio.write_nl(Sformat('%s+left: %3d right: %3d lccode: %s %#-8x uchyph: %3d\n', grep_indent, n.left, n.right, Uchar(TEXgetlccode(n.char)), TEXgetlccode(n.char), n.uchyph))
          -- Ligature components?
          if n.components then print_node_list(n.components, indent+2) end
       end,
@@ -167,6 +171,22 @@ local function new_printer(grep)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
          print_node_list(n.head, indent+2)
+      end,
+
+      [GLUE] = function(n, indent)
+         local grep_indent = grep .. Srep(' ', indent)
+         local spec = n.spec
+         texio.write_nl(Sformat('%s+glue: %d+%d-%d\n', grep_indent, spec.width, spec.stretch, spec.shrink))
+      end,
+
+      [KERN] = function(n, indent)
+         local grep_indent = grep .. Srep(' ', indent)
+         texio.write_nl(Sformat('%s+kern: %d ef: %d\n', grep_indent, n.kern, n.expansion_factor))
+      end,
+
+      [PENALTY] = function(n, indent)
+         local grep_indent = grep .. Srep(' ', indent)
+         texio.write_nl(Sformat('%s+penalty: %d\n', grep_indent, n.penalty))
       end,
 
    }
