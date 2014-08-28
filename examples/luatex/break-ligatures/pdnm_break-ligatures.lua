@@ -7,14 +7,43 @@ local Ncopy = node.copy
 local Ncopy_list = node.copy_list
 local Nflush_list = node.flush_list
 local Ninsert_after = node.insert_after
-local Ninsert_before = node.insert_before
-local Nremove = node.remove
 local Ntail = node.tail
 local Ntraverse = node.traverse
 local Uchar = unicode.utf8.char
 
 local DISC = node.id('disc')
 local GLYPH = node.id('glyph')
+
+
+--- Break a ligature in a discretionary node.
+-- The ligature in a discretionary is broken by replacing the replace
+-- list by the concatenation of pre and post lists except the hyphen
+-- character.
+--
+-- @param disc  Discretionary node.
+local function fix_discretionary(disc)
+   -- pattern (x-/y/z) => (x-/y/xy)
+   -- Get last character of pre list.
+   local last = Ntail(disc.pre)
+   -- Hyphen character?
+   if last and last.id == GLYPH and Uchar(last.char) == '-' then
+      -- Copy pre except for the last node.
+      local head = Ncopy_list(disc.pre, last)
+      -- Non-empty copy?
+      if head then
+         -- Append to pre everything from post.
+         last = Ntail(head)
+         for n in Ntraverse(disc.post) do
+            local c = Ncopy(n)
+            head, last = Ninsert_after(head, last, c)
+         end
+         local old_replace = disc.replace
+         disc.replace = head
+         old_replace.prev = nil
+         Nflush_list(old_replace)
+      end
+   end
+end
 
 
 --- Check a hyphenation point for a wrong ligature and break it.
@@ -51,16 +80,7 @@ local function process_hyphenation(a_parents, b_parents)
                if ap_ii.id == DISC then
                   -- pattern (xa-/by/x<ab>y) => (xa-/by/xaby)
                   -- example: auf/fordern
-                  local head = ap_ii.replace
-                  for n in Ntraverse(ap_i.components) do
-                     local c = Ncopy(n)
-                     head = Ninsert_before(head, ap_i, c)
-                  end
-                  head = Nremove(head, ap_i)
-                  ap_ii.replace = head
-                  ap_i.prev = nil
-                  ap_i.next = nil
-                  Nflush_list(ap_i)
+                  fix_discretionary(ap_ii)
                   return '(xa-/by/x<ab>y)'
                elseif ap_ii.id == GLYPH then
                   -- pattern <<ab>c>
@@ -71,21 +91,8 @@ local function process_hyphenation(a_parents, b_parents)
                      if ap_iii.id == DISC then
                         -- pattern (xa-/<bc>y/x<<ab>c>y) => (xa-/<bc>y/xa<bc>y)
                         -- example: auf/<fi>nden
-                        local last = Ntail(ap_iii.pre)
-                        if last.id == GLYPH and Uchar(last.char) == '-' then
-                           local head = Ncopy_list(ap_iii.pre, last)
-                           last = Ntail(head)
-                           for n in Ntraverse(ap_iii.post) do
-                              local c = Ncopy(n)
-                              head, last = Ninsert_after(head, last, c)
-                           end
-                           local old_replace = ap_iii.replace
-                           ap_iii.replace = head
-                           old_replace.prev = nil
-                           Nflush_list(old_replace)
-                           return '(xa-/<bc>y/x<<ab>c>y)'
-                        else return 12
-                        end
+                        fix_discretionary(ap_iii)
+                        return '(xa-/<bc>y/x<<ab>c>y)'
                      else return 11
                      end
                   else return 10
@@ -110,16 +117,7 @@ local function process_hyphenation(a_parents, b_parents)
                      if ap_iii.id == DISC then
                         -- pattern (x<ca>-/by/x<<ca>b>y) => (x<ca>-/by/x<ca>by)
                         -- example: Rohsto<ff>/industrie
-                        local head = ap_iii.replace
-                        for n in Ntraverse(ap_ii.components) do
-                           local c = Ncopy(n)
-                           head = Ninsert_before(head, ap_ii, c)
-                        end
-                        head = Nremove(head, ap_ii)
-                        ap_iii.replace = head
-                        ap_ii.prev = nil
-                        ap_ii.next = nil
-                        Nflush_list(ap_ii)
+                        fix_discretionary(ap_iii)
                         return '(x<ca>-/by/x<<ca>b>y)'
                      else return 6
                      end
