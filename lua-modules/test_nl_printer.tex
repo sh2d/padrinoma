@@ -7,8 +7,10 @@
 \directlua{
   local nlp = require('pdnm_nl_printer')
   local printer = nlp.new_printer('[node] ')
+  local sprinter = nlp.new_simple_printer('[simple] ')
   local function cb(head)
      printer(head)
+     sprinter(head)
      lang.hyphenate(head)
      return true
   end

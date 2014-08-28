@@ -201,4 +201,100 @@ M.new_printer = new_printer
 
 
 
+--- (Factory) Get a new simple node list printer function.
+-- A simple printer prints a compact string representation of a node
+-- list.  Glyph nodes are converted to the character they represent so
+-- that in this representation text is more legible.
+--
+-- @param grep  A string, which is printet at the beginning of every
+-- line.  Can be used to have something one can grep for in log files.
+-- @return A function, which takes as argument a node list head and
+-- writes a string representation to the log file.  Return value of that
+-- function is the string representation of the list (already written to
+-- the log file).
+local function new_simple_printer(grep)
+
+
+   -- A sequence containing the string representation of the node list.
+   local buffer
+   -- Flag.
+   local is_num_last_item
+
+
+   -- Recurse into node list and convert nodes to string representation.
+   local function recurse(head)
+      for n in node.traverse(head) do
+         local id = n.id
+         if id == GLYPH then
+            if n.components then
+               table.insert(buffer, '<')
+               recurse(n.components)
+               table.insert(buffer, '>')
+            else
+               table.insert(buffer, Uchar(n.char))
+            end
+            is_num_last_item = false
+         elseif id == DISC then
+            table.insert(buffer, '{')
+            recurse(n.pre, str)
+            table.insert(buffer, '/')
+            recurse(n.post, str)
+            table.insert(buffer, '/')
+            recurse(n.replace, str)
+            table.insert(buffer, '}')
+            is_num_last_item = false
+         elseif id == KERN then
+            table.insert(buffer, '[k')
+            table.insert(buffer, n.kern)
+            table.insert(buffer, ']')
+            is_num_last_item = false
+         elseif id == GLUE then
+            table.insert(buffer, '[g')
+            local spec = n.spec
+            table.insert(buffer, spec.width)
+            table.insert(buffer, '+')
+            table.insert(buffer, spec.stretch)
+            table.insert(buffer, '-')
+            table.insert(buffer, spec.shrink)
+            table.insert(buffer, ']')
+            is_num_last_item = false
+         elseif id == HLIST then
+            table.insert(buffer, '[h](')
+            recurse(n.head)
+            table.insert(buffer, ')')
+            is_num_last_item = false
+         elseif id == PENALTY then
+            table.insert(buffer, '[p')
+            table.insert(buffer, n.penalty)
+            table.insert(buffer, ']')
+            is_num_last_item = false
+         elseif id == VLIST then
+            table.insert(buffer, '[v](')
+            recurse(n.head)
+            table.insert(buffer, ')')
+            is_num_last_item = false
+         else
+            if is_num_last_item then
+               table.insert(buffer, ' ')
+            end
+            table.insert(buffer, tostring(id))
+            is_num_last_item = true
+         end
+      end
+   end
+
+
+   return function(head)
+      buffer = {}
+      is_num_last_item = false
+      recurse(head)
+      local s = table.concat(buffer)
+      texio.write_nl(grep .. s)
+      return s
+   end
+end
+M.new_simple_printer = new_simple_printer
+
+
+
 return M
