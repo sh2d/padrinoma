@@ -86,13 +86,16 @@ local M = {}
 
 
 
-local Nid = node.id
 local Ntraverse = node.traverse
 local Ntype = node.type
 local Sformat = string.format
 local Srep = string.rep
 local Uchar = unicode.utf8.char
 
+local DISC = node.id('disc')
+local GLYPH = node.id('glyph')
+local HLIST = node.id('hlist')
+local VLIST = node.id('vlist')
 
 
 -- Local references to terminal output functions.
@@ -136,7 +139,7 @@ local function new_printer(grep)
    -- @name print_node_details
    print_node_details = {
 
-      [Nid('disc')] = function(n, indent)
+      [DISC] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+pre\n', grep_indent))
          print_node_list(n.pre, indent+2)
@@ -146,7 +149,7 @@ local function new_printer(grep)
          print_node_list(n.replace, indent+2)
       end,
 
-      [Nid('glyph')] = function(n, indent)
+      [GLYPH] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+char: %s %#-8X comp: %1s lang: %3d font: %3d\n', grep_indent, Uchar(n.char), n.char, n.components and 't' or 'n', n.lang, n.font))
          texio.write_nl(Sformat('%s+left: %3d right: %3d uchyph: %3d\n', grep_indent, n.left, n.right, n.uchyph))
@@ -154,13 +157,13 @@ local function new_printer(grep)
          if n.components then print_node_list(n.components, indent+2) end
       end,
 
-      [Nid('hlist')] = function(n, indent)
+      [HLIST] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
          print_node_list(n.head, indent+2)
       end,
 
-      [Nid('vlist')] = function(n, indent)
+      [VLIST] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
          texio.write_nl(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
          print_node_list(n.head, indent+2)
