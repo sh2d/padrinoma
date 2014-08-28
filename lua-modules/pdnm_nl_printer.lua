@@ -119,7 +119,7 @@ local function new_printer(grep)
       -- Traverse node list.
       for n in Ntraverse(head) do
          -- Print general node information.
-         texio.write(Sformat('%s%-12s subtype: %3s n: %1s p: %1s\n', grep_indent, Ntype(n.id), n.subtype, n.next and 't' or 'n', n.prev and 't' or 'n'))
+         texio.write_nl(Sformat('%s%-12s subtype: %3s n: %1s p: %1s\n', grep_indent, Ntype(n.id), n.subtype, n.next and 't' or 'n', n.prev and 't' or 'n'))
          -- Print detailed node information.
          if print_node_details[n.id] then print_node_details[n.id](n, indent) end
       end
@@ -138,31 +138,31 @@ local function new_printer(grep)
 
       [Nid('disc')] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
-         texio.write(Sformat('%s+pre\n', grep_indent))
+         texio.write_nl(Sformat('%s+pre\n', grep_indent))
          print_node_list(n.pre, indent+2)
-         texio.write(Sformat('%s+post\n', grep_indent))
+         texio.write_nl(Sformat('%s+post\n', grep_indent))
          print_node_list(n.post, indent+2)
-         texio.write(Sformat('%s+replace\n', grep_indent))
+         texio.write_nl(Sformat('%s+replace\n', grep_indent))
          print_node_list(n.replace, indent+2)
       end,
 
       [Nid('glyph')] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
-         texio.write(Sformat('%s+char: %s %#-8X comp: %1s lang: %3d font: %3d\n', grep_indent, Uchar(n.char), n.char, n.components and 't' or 'n', n.lang, n.font))
-         texio.write(Sformat('%s+left: %3d right: %3d uchyph: %3d\n', grep_indent, n.left, n.right, n.uchyph))
+         texio.write_nl(Sformat('%s+char: %s %#-8X comp: %1s lang: %3d font: %3d\n', grep_indent, Uchar(n.char), n.char, n.components and 't' or 'n', n.lang, n.font))
+         texio.write_nl(Sformat('%s+left: %3d right: %3d uchyph: %3d\n', grep_indent, n.left, n.right, n.uchyph))
          -- Ligature components?
          if n.components then print_node_list(n.components, indent+2) end
       end,
 
       [Nid('hlist')] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
-         texio.write(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
+         texio.write_nl(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
          print_node_list(n.head, indent+2)
       end,
 
       [Nid('vlist')] = function(n, indent)
          local grep_indent = grep .. Srep(' ', indent)
-         texio.write(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
+         texio.write_nl(Sformat('%s+dir: %s w: %d h: %d d: %d s: %d\n', grep_indent, n.dir, n.width, n.height, n.depth, n.shift))
          print_node_list(n.head, indent+2)
       end,
 
@@ -171,7 +171,7 @@ local function new_printer(grep)
 
    return function(head)
       print_node_list(head, 0)
-      texio.write(Sformat('%s%s\n', grep, '***'))
+      texio.write_nl(Sformat('%s%s\n', grep, '***'))
    end
 end
 M.new_printer = new_printer
