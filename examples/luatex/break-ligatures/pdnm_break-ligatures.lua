@@ -4,10 +4,9 @@ local cls_spot = require('cls_pdnm_spot')
 local spot = cls_spot:new()
 
 local Ncopy = node.copy
-local Ncopy_list = node.copy_list
 local Nflush_list = node.flush_list
-local Ninsert_after = node.insert_after
-local Ntail = node.tail
+local Ninsert_before = node.insert_before
+local Nremove = node.remove
 local Ntraverse = node.traverse
 local Uchar = unicode.utf8.char
 
@@ -15,34 +14,55 @@ local DISC = node.id('disc')
 local GLYPH = node.id('glyph')
 
 
---- Break a ligature in a discretionary node.
--- The ligature in a discretionary is broken by replacing the replace
--- list by the concatenation of pre and post lists except the hyphen
--- character.
+--- Break a ligature in a discretionary of the form (v/w/x<ab>y).
+-- Transforms a discretionary: (v/w/x<ab>y) => (v/w/xaby).
 --
 -- @param disc  Discretionary node.
-local function fix_discretionary(disc)
-   -- pattern (x-/y/z) => (x-/y/xy)
-   -- Get last character of pre list.
-   local last = Ntail(disc.pre)
-   -- Hyphen character?
-   if last and last.id == GLYPH and Uchar(last.char) == '-' then
-      -- Copy pre except for the last node.
-      local head = Ncopy_list(disc.pre, last)
-      -- Non-empty copy?
-      if head then
-         -- Append to pre everything from post.
-         last = Ntail(head)
-         for n in Ntraverse(disc.post) do
-            local c = Ncopy(n)
-            head, last = Ninsert_after(head, last, c)
-         end
-         local old_replace = disc.replace
-         disc.replace = head
-         old_replace.prev = nil
-         Nflush_list(old_replace)
-      end
+-- @param lig  Ligature node within discretionary replace list.
+local function break_double_ligature_in_discretionary(disc, lig)
+   -- Head of discretinary replace list.
+   local head = disc.replace
+   -- Insert ligature components before ligature node.
+   for n in Ntraverse(lig.components) do
+      local c = Ncopy(n)
+      head = Ninsert_before(head, lig, c)
    end
+   -- Remove original ligature from discretionary replace list.
+   head = Nremove(head, lig)
+   -- Update discretionary replace list.
+   disc.replace = head
+   -- Destroy ligature node.
+   lig.prev = nil
+   lig.next = nil
+   Nflush_list(lig)
+end
+
+
+--- Break a ligature in a discretionary of the form (v/w/x<<ab>c>y).
+-- Transforms a discretionary: (v/w/x<<ab>c>y) => (v/w/xa<bc>y).  Due to
+-- lack of <bc> ligaturing information, transformation is actually:
+-- (v/w/x<<ab>c>y) => (v/w/xabcy), currently.
+--
+-- @param disc  Discretionary node.
+-- @param lig  Ligature node within discretionary replace list.
+local function break_triple_ligature_in_discretionary(disc, olig)
+   local ilig = olig.components
+   local a = ilig.components
+   local b = a.next
+   local c = ilig.next
+   -- Insert new nodes before outer ligature.
+   local head = disc.replace
+   head = Ninsert_before(head, olig, Ncopy(a))
+   head = Ninsert_before(head, olig, Ncopy(b))
+   head = Ninsert_before(head, olig, Ncopy(c))
+   -- Remove outer ligature from discretionary replace list.
+   head = Nremove(head, olig)
+   -- Update discretionary replacement list.
+   disc.replace = head
+   -- Destroy outer ligature node.
+   olig.prev = nil
+   olig.next = nil
+   Nflush_list(olig)
 end
 
 
@@ -78,10 +98,10 @@ local function process_hyphenation(a_parents, b_parents)
             if #a_parents > 1 and #b_parents > 1 then
                local ap_ii = a_parents[#a_parents-1]
                if ap_ii.id == DISC then
-                  -- pattern (xa-/by/x<ab>y) => (xa-/by/xaby)
+                  -- pattern (v/w/x<ab>y) => (v/w/xaby)
                   -- example: auf/fordern
-                  fix_discretionary(ap_ii)
-                  return '(xa-/by/x<ab>y)'
+                  break_double_ligature_in_discretionary(ap_ii, ap_i)
+                  return '(v/w/x<ab>y)'
                elseif ap_ii.id == GLYPH then
                   -- pattern <<ab>c>
                   --
@@ -89,10 +109,10 @@ local function process_hyphenation(a_parents, b_parents)
                   if #a_parents > 2 and #b_parents > 2 then
                      local ap_iii = a_parents[#a_parents-2]
                      if ap_iii.id == DISC then
-                        -- pattern (xa-/<bc>y/x<<ab>c>y) => (xa-/<bc>y/xa<bc>y)
+                        -- pattern (v/w/x<<ab>c>y) => (v/w/xa<bc>y)
                         -- example: auf/<fi>nden
-                        fix_discretionary(ap_iii)
-                        return '(xa-/<bc>y/x<<ab>c>y)'
+                        break_triple_ligature_in_discretionary(ap_iii, ap_ii)
+                        return '(v/w/x<<ab>c>y)'
                      else return 11
                      end
                   else return 10
@@ -115,10 +135,10 @@ local function process_hyphenation(a_parents, b_parents)
                   if #a_parents > 2 and #b_parents > 1 then
                      local ap_iii = a_parents[#a_parents-2]
                      if ap_iii.id == DISC then
-                        -- pattern (x<ca>-/by/x<<ca>b>y) => (x<ca>-/by/x<ca>by)
+                        -- pattern (v/w/x<<ca>b>y) => (v/w/x<ca>by)
                         -- example: Rohsto<ff>/industrie
-                        fix_discretionary(ap_iii)
-                        return '(x<ca>-/by/x<<ca>b>y)'
+                        break_double_ligature_in_discretionary(ap_iii, ap_ii)
+                        return '(v/w/x<<ca>b>y)'
                      else return 6
                      end
                   else return 5
