@@ -14,55 +14,52 @@ local DISC = node.id('disc')
 local GLYPH = node.id('glyph')
 
 
---- Break a ligature in a discretionary of the form (v/w/x<ab>y).
--- Transforms a discretionary: (v/w/x<ab>y) => (v/w/xaby).
+--- Break a ligature of the form <code>x<ab>y</code>.
+-- Transformation is: x<ab>y => xaby.
 --
--- @param disc  Discretionary node.
--- @param lig  Ligature node within discretionary replace list.
-local function break_double_ligature_in_discretionary(disc, lig)
-   -- Head of discretinary replace list.
-   local head = disc.replace
+-- @param head  List head.
+-- @param lig  Ligature node within list.
+-- @return List head (might have changed).
+local function break_double_ligature(head, lig)
    -- Insert ligature components before ligature node.
    for n in Ntraverse(lig.components) do
       local c = Ncopy(n)
       head = Ninsert_before(head, lig, c)
    end
-   -- Remove original ligature from discretionary replace list.
+   -- Remove original ligature from node list.
    head = Nremove(head, lig)
-   -- Update discretionary replace list.
-   disc.replace = head
    -- Destroy ligature node.
    lig.prev = nil
    lig.next = nil
    Nflush_list(lig)
+   return head
 end
 
 
---- Break a ligature in a discretionary of the form (v/w/x<<ab>c>y).
--- Transforms a discretionary: (v/w/x<<ab>c>y) => (v/w/xa<bc>y).  Due to
--- lack of <bc> ligaturing information, transformation is actually:
--- (v/w/x<<ab>c>y) => (v/w/xabcy), currently.
+--- Break a ligature of the form <code>x<<ab>c>y</code>.
+-- Theoretical transformation is: x<<ab>c>y => xa<bc>y.  Due to lack of
+-- <bc> ligaturing information, transformation is actually: x<<ab>c>y =>
+-- xabcy, currently.
 --
--- @param disc  Discretionary node.
--- @param lig  Ligature node within discretionary replace list.
-local function break_triple_ligature_in_discretionary(disc, olig)
+-- @param head  List head.
+-- @param lig  Ligature node within list.
+-- @return List head (might have changed).
+local function break_triple_ligature(head, olig)
    local ilig = olig.components
    local a = ilig.components
    local b = a.next
    local c = ilig.next
    -- Insert new nodes before outer ligature.
-   local head = disc.replace
    head = Ninsert_before(head, olig, Ncopy(a))
    head = Ninsert_before(head, olig, Ncopy(b))
    head = Ninsert_before(head, olig, Ncopy(c))
    -- Remove outer ligature from discretionary replace list.
    head = Nremove(head, olig)
-   -- Update discretionary replacement list.
-   disc.replace = head
    -- Destroy outer ligature node.
    olig.prev = nil
    olig.next = nil
    Nflush_list(olig)
+   return head
 end
 
 
@@ -83,7 +80,7 @@ end
 -- @return Debug information: string or number.  The string indicates
 -- the ligaturing situation found within the discretionaries replace
 -- list.  A number is returned if no ligature could be found.
-local function process_hyphenation(a_parents, b_parents)
+local function process_hyphenation(head, a_parents, b_parents)
    -- Do a and b have parents at all?
    if a_parents and b_parents then
       -- Are first parents of a and b equal?
@@ -98,9 +95,9 @@ local function process_hyphenation(a_parents, b_parents)
             if #a_parents > 1 and #b_parents > 1 then
                local ap_ii = a_parents[#a_parents-1]
                if ap_ii.id == DISC then
-                  -- pattern (v/w/x<ab>y) => (v/w/xaby)
+                  -- pattern x<ab>y within discretionary: (v/w/x<ab>y) => (v/w/xaby)
                   -- example: auf/fordern
-                  break_double_ligature_in_discretionary(ap_ii, ap_i)
+                  ap_ii.replace = break_double_ligature(ap_ii.replace, ap_i)
                   return '(v/w/x<ab>y)'
                elseif ap_ii.id == GLYPH then
                   -- pattern <<ab>c>
@@ -109,17 +106,27 @@ local function process_hyphenation(a_parents, b_parents)
                   if #a_parents > 2 and #b_parents > 2 then
                      local ap_iii = a_parents[#a_parents-2]
                      if ap_iii.id == DISC then
-                        -- pattern (v/w/x<<ab>c>y) => (v/w/xa<bc>y)
+                        -- pattern <<ab>c> within discretionary: (v/w/x<<ab>c>y) => (v/w/xa<bc>y)
                         -- example: auf/<fi>nden
-                        break_triple_ligature_in_discretionary(ap_iii, ap_ii)
+                        ap_iii.replace = break_triple_ligature(ap_iii.replace, ap_ii)
                         return '(v/w/x<<ab>c>y)'
                      else return 11
                      end
-                  else return 10
+                  else
+                     -- pattern <<ab>c> outside discretionary: x<<ab>c>y => xa<bc>y
+                     -- example: auf/<fi>nden
+                     local new_head = break_triple_ligature(head, ap_ii)
+                     assert(new_head == head)
+                     return 'x<<ab>c>y'
                   end
                else return 9
                end
-            else return 8
+            else
+               -- pattern x<ab>y outside discretionary: x<ab>y => xaby
+               -- example: auf/fordern
+               local new_head = break_double_ligature(head, ap_i)
+               assert(new_head == head)
+               return 'x<ab>y'
             end
          else return 7
          end
@@ -135,13 +142,18 @@ local function process_hyphenation(a_parents, b_parents)
                   if #a_parents > 2 and #b_parents > 1 then
                      local ap_iii = a_parents[#a_parents-2]
                      if ap_iii.id == DISC then
-                        -- pattern (v/w/x<<ca>b>y) => (v/w/x<ca>by)
+                        -- pattern <<ca>b> within discretionary: (v/w/x<<ca>b>y) => (v/w/x<ca>by)
                         -- example: Rohsto<ff>/industrie
-                        break_double_ligature_in_discretionary(ap_iii, ap_ii)
+                        ap_iii.replace = break_double_ligature(ap_iii.replace, ap_ii)
                         return '(v/w/x<<ca>b>y)'
                      else return 6
                      end
-                  else return 5
+                  else
+                     -- pattern <<ca>b> outside discretionary: x<<ca>b>y => x<ca>by
+                     -- example: Rohsto<ff>/industrie
+                     local new_head = break_double_ligature(head, ap_ii)
+                     assert(new_head == head)
+                     return 'x<<ca>b>y'
                   end
                else return 4
                end
@@ -177,7 +189,7 @@ local function apply_manipulation(head, twords)
          -- Valid spot?
          if (level % 2) == 1 then
             -- Apply manipulation.
-            local result = process_hyphenation(word.parents[pos-1], word.parents[pos])
+            local result = process_hyphenation(head, word.parents[pos-1], word.parents[pos])
             texio.write_nl('[word joint] ' .. s .. ' ' .. tonumber(pos-1) .. ':' .. tostring(result))
          end
       end
