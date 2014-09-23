@@ -191,7 +191,7 @@ end
 -- Load padrinoma module.
 local padrinoma = require('pdnm_nl_manipulation')
 -- Create custom pattern matching function.
-local scan_node_list = padrinoma.create_node_list_scanner('../../patterns/hyph-de-1901-joint.pat.txt', 'german', true)
+local scan_node_list = padrinoma.create_node_list_scanner('german', '../../patterns/hyph-de-1901-joint.pat.txt', 2, 2, true)
 
 local nlp = require('pdnm_nl_printer')
 local printer = nlp.new_simple_printer('[node] ')

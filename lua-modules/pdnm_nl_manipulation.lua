@@ -180,22 +180,33 @@ local debug_information
 -- against the given patterns.  Return value is a sequence of word
 -- property tables.
 --
--- @param pattern_name  Name of a pure text UTF-8 pattern file.
 -- @param language  A language identifier or number patterns are
 -- associated with.
+-- @param pattern_name  Name of a pure text UTF-8 pattern file.
+-- @param spot_leading Leading spot min when applying patterns to words.
+-- If the argument is negative, leading spot min is determined
+-- automatically as the left hyphen min value of the last glyph node of
+-- a word.
+-- @param spot_trailing  Trailing spot min when applying patterns to
+-- words.  See parameter <code>spot_leading</code> for more details.
 -- @param is_debug  If this flag is <code>true</code>, at the end of the
 -- TeX run, a list of words with spots according to the given patterns
 -- is written to a file for debugging purposes.  By default, debugging
 -- is inactive.
 -- @return Custom node list scanner funtion.
 -- @see match_patterns
-local function create_node_list_scanner(pattern_name, language, is_debug)
+local function create_node_list_scanner(language, pattern_name, spot_leading, spot_trailing, is_debug)
 
    -- Upvalues used while matching patterns against the words in a node
    -- list.
    --
    -- Spot object used for pattern matching.
    local spot
+   -- Pre-process spot minima.  If arguments are negative (automatic
+   -- mode), make variables nil so that later flag evaluation can be
+   -- simplified.
+   if spot_leading < 0 then spot_leading = nil end
+   if spot_trailing < 0 then spot_trailing = nil end
    -- Language number associated with spot object.
    local language_num
    -- Table of words with spots as strings (for debugging).
@@ -253,7 +264,11 @@ local function create_node_list_scanner(pattern_name, language, is_debug)
          return
       end
       -- Adjust spot mins.  Must be done before finishing decomposition.
-      spot:set_spot_mins(last_glyph.left, last_glyph.right)
+      -- Variables spot_leading and spot_trailing contain a non-negative
+      -- number or nil.
+      local leading = spot_leading or last_glyph.left
+      local trailing = spot_trailing or last_glyph.right
+      spot:set_spot_mins(leading, trailing)
       -- Process trailing boundary letter.
       spot:decomposition_advance(spot.boundary_letter)
       -- Finish decomposition.

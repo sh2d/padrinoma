@@ -115,8 +115,9 @@ end
 --
 -- Load padrinoma module.
 local padrinoma = require('pdnm_nl_manipulation')
--- Create custom pattern matching function.
-local scan_node_list = padrinoma.create_node_list_scanner('../../patterns/hyph-de-1996-compound.pat.txt', 'ngerman', true)
+-- Create custom pattern matching function.  (Pattern matching results
+-- are discarded later.)
+local scan_node_list = padrinoma.create_node_list_scanner('ngerman', '../../patterns/hyph-de-1996-compound.pat.txt', 99, 99, -1, true)
 
 -- Register hyphenate call-back.
 luatexbase.add_to_callback('hyphenate',
