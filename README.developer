@@ -5,11 +5,13 @@ The development repository is currently hosted at
 be found in the
 [issue tracker](https://github.com/sh2d/padrinoma/issues/).
 
+
+## Code language
+
 Main development languages are Lua and TeX.
 
 
-
-# Code documentation
+## Code documentation
 
 Lua code documentation is in
 [LuaDoc](http://keplerproject.github.com/luadoc/) format and can be
@@ -18,17 +20,38 @@ generated via
     luadoc -d API *.lua
 
 
+## Repository layout
 
-# Design decisions
+What does it take to implement Liang's hyphenation algorithm in LuaTeX?
+
+1. Code to traverse a node list and to identify words.
+2. An implementation of Liang's pattern matching algorithm for the words
+  encountered during node list traversal.
+
+Files related to node list traversal tend to reside in directory
+`lua-modules`.  Files related to pattern matching tend to reside in
+directory `lua-classes`.
+
+Incidentally, both items mentioned above are already part of LuaTeX.
+Though, in part not accessible from within the document level.  As
+LuaTeX is about ‘upening-up TeX’, the author hopes that the code in this
+repository will become redundant one day.
+
+
+
+# Some design decisions
 
 ## Lua and OOP
 
 As far as Lua code makes use of the OOP paradigm, classes are derived
-from a base class (module) `pdnm_cls_oop.lua`.  This class implements a
+from a base class (module) `cls_pdnm_oop.lua`.  This class implements a
 proto-type based OOP scheme following the approach presented in the book
-<em>Programming in Lua</em> by R. Ierusalimschy, of which the first
-edition is also <a
-href='http://www.lua.org/pil/contents.html/'>available online</a>.
+_Programming in Lua_ by R. Ierusalimschy, of which the first edition is
+also [available online](http://www.lua.org/pil/contents.html).
+
+Note that OOP is only used for sake of flexibility during development.
+It makes perfect sense to consider refactoring any OOP code into a
+single Lua module later.
 
 
 ## File names
