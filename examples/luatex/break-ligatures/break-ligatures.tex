@@ -45,6 +45,8 @@ handling mark-up has been used in the examples shown below.
      fl = {},
      ffi = {},
      ffl = {},
+     st = {},
+     tz = {},
   }
 
   read_words('words.german.ff', words.ff)
@@ -52,6 +54,8 @@ handling mark-up has been used in the examples shown below.
   read_words('words.german.fl', words.fl)
   read_words('words.german.ffi', words.ffi)
   read_words('words.german.ffl', words.ffl)
+  read_words('words.german.st', words.st)
+  read_words('words.german.tz', words.tz)
 
   function paragraphs(words, num_p, num_w)
       for i = 1,num_p do
@@ -88,6 +92,18 @@ handling mark-up has been used in the examples shown below.
 \subsubsection{Letter combination f + f + l}
 \begin{otherlanguage}{german}
 \directlua{paragraphs(words.ffl, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination s + t}
+\begin{otherlanguage}{german}
+\setmainfont[Ligatures=Historic]{Linux Libertine O}
+\directlua{paragraphs(words.st, 1, 50)}
+\end{otherlanguage}
+
+\subsubsection{Letter combination t + z}
+\begin{otherlanguage}{german}
+\setmainfont[Ligatures=Rare]{Linux Libertine O}
+\directlua{paragraphs(words.tz, 1, 50)}
 \end{otherlanguage}
 
 \end{document}
