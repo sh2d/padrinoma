@@ -4,6 +4,7 @@
 \usepackage[utf8]{luainputenc}
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
+\setmonofont{Latin Modern Mono Prop}
 \usepackage[main=english, german]{babel}
 \usepackage{pdnm_break-ligatures}
 \begin{document}
@@ -11,10 +12,17 @@
 \section{Pattern driven ligature handling in \TeX}
 
 This is an example application of the padrinoma package demonstrating
-selective, pattern driven ligature handling.  No explicit ligature
-handling mark-up has been used in the examples shown below.
+selective, pattern driven ligature handling using dedicated word joint
+patterns.  No explicit ligature handling mark-up has been used in the
+examples shown below.
 
-\subsection{German examples}
+Example paragraphs contain a selection of fifty (roughly) alternating
+words with letters that should or should not be subject to ligation.
+Words are read from files \texttt{words.*} and change at every
+compilation of the \texttt{.tex} source file.  Patterns can be found in
+file \texttt{examples/patterns/hyph-de-1901-joint.pat.txt}.
+
+\subsection{German examples (traditional orthography)}
 
 % Read example word lists from files.
 \bgroup
@@ -69,7 +77,7 @@ handling mark-up has been used in the examples shown below.
 }
 \egroup
 
-\subsubsection{Letters combination f + f}
+\subsubsection{Letter combination f + f}
 \begin{otherlanguage}{german}
 \directlua{paragraphs(words.ff, 1, 50)}
 \end{otherlanguage}
