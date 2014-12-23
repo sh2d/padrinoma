@@ -1,0 +1,81 @@
+% -*- coding: utf-8 -*-
+\listfiles
+\documentclass{article}
+\usepackage{fontspec}
+\setmonofont{Latin Modern Mono Prop}
+\usepackage[main=english, german]{babel}
+\usepackage{pdnm_long-s-patterns}
+\begin{document}
+
+\section{Black-letter type and \TeX}
+
+This is an example application of the padrinoma package demonstrating
+automatic, context-aware \emph{round-s} to \emph{long-s} conversion
+(\emph{s}~$\rightarrow$~\emph{ſ}).  Words in input using \emph{round-s}
+form exclusively, are automatically converted to a mixture
+of \emph{round-} and \emph{long-s} forms in output according to German
+typographic conventions.  No explicit mark-up has been used in this
+document.
+
+This feature is targetting at typesetting with black-letter fonts.  Due
+to missing good quality black-letter OpenType fonts in TeX Live, example
+text below is typeset using Latin Modern Roman font, though.  The reader
+is encouraged to change the font in the source document to his favourite
+one.
+
+This document uses patterns indicating occurrences of \emph{long-s}
+glyphs.  Patterns can be found in
+file \texttt{examples/patterns/gsub-long-s-de-1901.pat.txt}.
+
+
+\subsection{German example (traditional orthography)}
+
+% Read example word lists from files.
+\bgroup
+% Characters # and % are used in Lua code.
+\catcode`\#=12
+\catcode`\%=12
+\directlua{
+  local function read_words(basename, t)
+     local fi = assert(io.open(basename .. '.rounds', 'r'))
+     local file = fi:read('*a')
+     fi:close()
+     t.rounds = {}
+     for word in unicode.utf8.gmatch(file, '(%w+)') do
+        table.insert(t.rounds, word)
+     end
+     local fi = assert(io.open(basename .. '.longs', 'r'))
+     local file = fi:read('*a')
+     fi:close()
+     t.longs = {}
+     for word in unicode.utf8.gmatch(file, '(%w+)') do
+        table.insert(t.longs, word)
+     end
+  end
+
+  words = {
+     s = {},
+  }
+
+  read_words('words.german.s', words.s)
+
+  function paragraphs(words, num_p, num_w)
+      for i = 1,num_p do
+         for w = 1,num_w / 2 do
+            tex.print(words.rounds[math.random(#words.rounds)] .. ' ' .. words.longs[math.random(#words.longs)] .. ' ')
+         end
+         tex.print('\par')
+      end
+   end
+   math.randomseed(os.time())
+}
+\egroup
+
+\begin{otherlanguage}{german}
+Dresden Dresdner Oskar obskur grotesk Imbiss lass ausser missverstanden
+Missgeschick Schiessbude
+
+\directlua{paragraphs(words.s, 1, 50)}
+\end{otherlanguage}
+
+\end{document}

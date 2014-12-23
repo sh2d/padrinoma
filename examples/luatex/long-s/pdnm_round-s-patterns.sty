@@ -1,0 +1,15 @@
+%% -*- coding: utf-8 -*-
+\RequirePackage{expl3}
+\ProvidesExplPackage{pdnm_round-s-patterns}{2014/12/23}{0.1}{Automatic long s substitution (SH)}
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+% Test for the LuaTeX engine.
+\msg_new:nnn{pdnm_long-s}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
+\luatex_if_engine:TF{}{\msg_fatal:nn{pdnm_round-s-patterns}{bad-engine}}
+% Load padrinoma package.
+\usepackage{padrinoma}
+% LuaTeX call-back management.
+\RequirePackage{luatexbase-mcb}
+% Set-up node list manipulation in Lua.
+\directlua{
+  dofile('pdnm_round-s-patterns.lua')
+}
