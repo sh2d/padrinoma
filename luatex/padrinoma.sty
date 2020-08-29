@@ -41,7 +41,7 @@
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 % Test for the LuaTeX engine.
 \msg_new:nnn{padrinoma}{bad-engine}{LuaTeX~engine~required.~You~could~try~with~the~`lua(la)tex'~command.}
-\luatex_if_engine:TF{}{\msg_fatal:nn{padrinoma}{bad-engine}}
+\sys_if_engine_luatex:TF{}{\msg_fatal:nn{padrinoma}{bad-engine}}
 % Lua module version management.
 \RequirePackage{luatexbase-modutils}
 % Create a global Lua table for translating language identifiers to
