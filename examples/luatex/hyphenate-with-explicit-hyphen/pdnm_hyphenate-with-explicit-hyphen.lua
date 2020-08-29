@@ -4,8 +4,8 @@ local cls_spot = require('cls_pdnm_spot')
 
 local spot = cls_spot:new()
 local pattern_name = '../../patterns/hyph-de-1996-compound.pat.txt'
-local fin = kpse.find_file(pattern_name)
-fin = assert(io.open(fin, 'r'), 'Could not open pattern file ' .. pattern_name .. '!')
+local fin = assert(kpse.find_file(pattern_name), 'Could not find pattern file ' .. pattern_name)
+fin = assert(io.open(fin, 'r'), 'Could not open pattern file ' .. pattern_name)
 local count = spot:read_patterns(fin)
 fin:close()
 print(count .. ' patterns read from file ' .. pattern_name)

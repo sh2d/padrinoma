@@ -444,8 +444,9 @@ local function create_node_list_scanner(language, pattern_name, spot_leading, sp
    -- Initialize custom spot object.
    spot = cls_spot:new()
    do
-      local fin = kpse.find_file(pattern_name)
-      fin = assert(io.open(fin, 'r'), 'Pattern file ' .. pattern_name .. ' not found!')
+      assert(pattern_name and pattern_name ~= '', 'Bad pattern file name: ' .. pattern_name)
+      local fin = assert(kpse.find_file(pattern_name), 'Could not find pattern file ' .. pattern_name)
+      fin = assert(io.open(fin, 'r'), 'Could not open pattern file ' .. pattern_name)
       local count = spot:read_patterns(fin)
       fin:close()
       info(count .. ' patterns read from file ' .. pattern_name)
