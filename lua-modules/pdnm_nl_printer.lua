@@ -250,12 +250,11 @@ local function new_simple_printer(grep)
             is_num_last_item = false
          elseif id == GLUE then
             table.insert(buffer, '[g')
-            local spec = n.spec
-            table.insert(buffer, spec.width)
+            table.insert(buffer, n.width)
             table.insert(buffer, '+')
-            table.insert(buffer, spec.stretch)
+            table.insert(buffer, n.stretch)
             table.insert(buffer, '-')
-            table.insert(buffer, spec.shrink)
+            table.insert(buffer, n.shrink)
             table.insert(buffer, ']')
             is_num_last_item = false
          elseif id == HLIST then
