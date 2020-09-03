@@ -1,0 +1,54 @@
+# Class inheritance
+
+Inheritance is implemented via a proto-type based OOP scheme following
+the approach presented in the book _Programming in Lua_ by
+R. Ierusalimschy, of which the first edition is also [available
+online](http://www.lua.org/pil/contents.html).
+
+The code has been written as a testbed for applications of Liang pattern
+decomposition.  Design goal was flexibility rather than efficiency.
+
+
+## `cls_pdnm_oop`
+
+Base proto-type class.
+
+
+### `cls_pdnm_pattern`
+
+Derived from class `cls_pdnm_oop`.
+
+* Can decompose a word into Liang patterns.
+* Has no notion of spots (e.g. hypenation positions).
+
+The pattern decomposition process can be intercepted by call-backs.  A
+class user probably wants to implement proper call-backs to adjust
+behaviour rather than to override methods containing decomposition logic
+in a derived class.  Call-backs are functions with names starting
+`cb_<class name>`.
+
+
+#### `cls_pdnm_spot`
+
+Derived from class `cls_pdnm_pattern`.
+
+* Can identify spots in a word (e.g. hyphenation positions).
+
+
+### `cls_pdnm_trie_simple`
+
+Derived from class `cls_pdnm_oop`.
+
+* Can store strings with an associated value.
+* Can search strings and retrieve the associated value.
+* Can be populated reading strings from a file.
+* Can print a visual representation for debugging purposes.
+
+
+
+<!--
+%%% Local Variables: 
+%%% coding: utf-8
+%%% mode: markdown
+%%% End: 
+-->

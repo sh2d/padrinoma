@@ -41,6 +41,10 @@ repository will become redundant one day.
 
 # Some design decisions
 
+The code has been written as a testbed for applications of Liang pattern
+decomposition.  Design goal was flexibility rather than efficiency.
+
+
 ## Lua and OOP
 
 As far as Lua code makes use of the OOP paradigm, classes are derived
@@ -51,7 +55,7 @@ also [available online](http://www.lua.org/pil/contents.html).
 
 Note that OOP is only used for sake of flexibility during development.
 It makes perfect sense to consider refactoring any OOP code into a
-single Lua module later.
+single Lua module for an actual application.
 
 
 ## File names
