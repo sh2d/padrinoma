@@ -45,7 +45,9 @@ local cls_spot = require('cls_pdnm_spot')
 
 local Tconcat = table.concat
 local Tinsert = table.insert
+local Tsort = table.sort
 local Ugmatch = unicode.utf8.gmatch
+local Ulen = unicode.utf8.len
 local Ulower = unicode.utf8.lower
 local Urep = unicode.utf8.rep
 
@@ -100,6 +102,8 @@ local function decomposition_start__verbose(self)
    self.super.cb_pdnm_pattern__decomposition_start(self)
    local boundary = self.boundary_letter
    io.write('\n ', boundary, ' ', Tconcat(self.word, ' '), ' ', boundary, '\n')
+   -- Store matching patterns separated by start position.
+   self.matching_patterns = {}
 end
 
 
@@ -113,12 +117,38 @@ local function decomposition_pattern_found__verbose(self, node, start_pos)
          word_levels[pos] = level
       end
    end
-   io.write(Urep(' ', 2*(start_pos-1)), self.trie:get_value(node).xpattern, '\n')
+   -- Store pattern and start position.
+   if not self.matching_patterns[start_pos] then self.matching_patterns[start_pos] = {} end
+   Tinsert(self.matching_patterns[start_pos], self.trie:get_value(node).xpattern)
 end
 
 
 local function decomposition_finish__verbose(self)
    self.super.cb_pdnm_pattern__decomposition_finish(self)
+   -- Output matching patterns one pattern per line.  To keep a diagonal
+   -- form (as much as possible), patterns matching at smaller start
+   -- positions are output first.  Within multiple patterns starting at
+   -- the same letter position, shorter patterns are output first.
+   --
+   -- Sort matching pattern start positions.
+   local sorted_start_positions = {}
+   for start_pos in pairs(self.matching_patterns) do
+      Tinsert(sorted_start_positions, start_pos)
+   end
+   Tsort(sorted_start_positions)
+   -- Iterate over matching pattern start positions.
+   for _,start_pos in ipairs(sorted_start_positions) do
+      -- Sort patterns matching at the same start position by pattern
+      -- length.
+      Tsort(self.matching_patterns[start_pos], function(s1, s2) return Ulen(s1) < Ulen(s2) end)
+      -- Output sorted patterns.
+      for _,xpattern in ipairs(self.matching_patterns[start_pos]) do
+         io.write(Urep(' ', 2*(start_pos-1)), xpattern, '\n')
+      end
+   end
+   -- Destroy decomposition information.
+   self.matching_patterns = nil
+   -- Show results.
    local word = self.word
    local word_levels = self.word_levels
    -- Output string with levels.
