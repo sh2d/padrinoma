@@ -173,17 +173,30 @@ local function init(patternfile, verbose, leading, trailing, spot_char, expl_spo
       spot.cb_pdnm_pattern__decomposition_finish = decomposition_finish__non_verbose
    end
    -- Check if pattern file can be found.
-   local kpsepatternfile = kpse.find_file(patternfile) or kpse.find_file('hyph-' .. patternfile .. '.pat.txt')
-   if not kpsepatternfile then
-      io.stderr:write('Could not find pattern file ', patternfile, '\n')
+   if not patternfile then
+      io.stderr:write('Invaild pattern file name', '\n')
       os.exit(1)
+   end
+   -- Try opening pattern file.
+   local fin = io.open(patternfile, 'r')
+   if not fin then
+      local kpsepatternfile
+      -- Search with kpse?
+      if kpse then
+         kpsepatternfile = kpse.find_file(patternfile) or kpse.find_file('hyph-' .. patternfile .. '.pat.txt')
+      end
+      if not kpsepatternfile then
+         io.stderr:write('Could not find pattern file ', patternfile, '\n')
+         os.exit(1)
+      end
+      patternfile = kpsepatternfile
+      fin = assert(io.open(patternfile, 'r'))
    end
    -- Read patterns from file (must be done after setting-up spot.trie.*
    -- variables).
-   local fin = assert(io.open(kpsepatternfile, 'r'))
    local count = spot:read_patterns(fin)
    fin:close()
-   io.write('pattern file: ', kpsepatternfile, ' (', count, ' patterns read)\n')
+   io.write('pattern file: ', patternfile, ' (', count, ' patterns read)\n')
    -- Print parameters.
    io.write('spot mins, special characters: ', leading, ' ', trailing, ' \'', spot_char, expl_spot_char, boundary_char, '\'\n')
    -- Set spot instance parameters.

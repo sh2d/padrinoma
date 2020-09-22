@@ -1,6 +1,7 @@
 -- -*- coding: utf-8 -*-
 
-kpse.set_program_name('luatex')
+-- Search files in TDS tree.
+if kpse then kpse.set_program_name('luatex') end
 local unicode = require('unicode')
 local alt_getopt = require('alt_getopt')
 local cls_pattern = require('cls_pdnm_pattern')
@@ -18,8 +19,10 @@ Reads UTF-8 encoded strings from standard input and decomposes them into Liang p
 long        short  arg   description
 --help      -h           print help
 --bletter   -b     char  set boundary letter (default is a FULL STOP '.')
---patterns  -p     file  set pattern file to use for decomposition
-                         File is searched using the kpse library.
+--patterns  -p     file  read patterns from file '<file>'
+                         When the texlua interpreter is used, files
+                         '<file>' and 'hyph-<file>.pat.txt' are searched using
+                         the kpse library.
                          Patterns must be pure text in UTF-8 encoding.
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
@@ -69,14 +72,26 @@ if not patternfile then
    os.exit(1)
 end
 -- Check if pattern file can be found.
-local xpatternfile = kpse.find_file(patternfile)
-if not xpatternfile then
-   print('Could not find pattern file ' .. patternfile)
-   os.exit(1)
+local fin = io.open(patternfile, 'r')
+if fin then
+   -- File exists.
+   fin:close()
+else
+   local kpsepatternfile
+      -- Search with kpse?
+   if kpse then
+      kpsepatternfile = kpse.find_file(patternfile) or kpse.find_file('hyph-' .. patternfile .. '.pat.txt')
+   end
+   if not kpsepatternfile then
+      print('Could not find pattern file ' .. patternfile)
+      os.exit(1)
+   end
+   patternfile = kpsepatternfile
 end
 
+
 print('boundary letter: \'' .. bletter .. '\'')
-print('pattern file: ' .. xpatternfile)
+print('pattern file: ' .. patternfile)
 
 
 -- Create pattern instance.
@@ -122,7 +137,7 @@ p.trie._show = _show
 
 -- Load patterns.
 do
-   local fin = assert(io.open(xpatternfile, 'r'))
+   local fin = assert(io.open(patternfile, 'r'))
    local count = p:read_patterns(fin)
    fin:close()
    io.write(count, ' patterns read.\n')

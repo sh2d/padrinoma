@@ -40,7 +40,8 @@
 
 --]]
 
-kpse.set_program_name('luatex')
+-- Search files in TDS tree.
+if kpse then kpse.set_program_name('luatex') end
 local backend = require('patternize-backend')
 local alt_getopt = require('alt_getopt')
 
@@ -55,9 +56,10 @@ local function help()
 Decomposes UTF-8 encoded strings from stdin into Liang patterns and calculates spots indicating, e.g., valid hyphenation points. Results are written to stdout, optionally with decomposition information. Options:
 long        short  arg   description
 --help      -h           show help
---patterns  -p     file  set pattern file to use for decomposition
-                         Files '<file>' as well as 'hyph-<file>.pat.txt' are
-                         searched in that order using the kpse library.
+--patterns  -p     file  read patterns from file '<file>'
+                         When the texlua interpreter is used, files
+                         '<file>' and 'hyph-<file>.pat.txt' are searched using
+                         the kpse library.
                          Patterns must be pure text in UTF-8 encoding.
             -T           equivalent to -p hyph-de-1901.pat.txt
             -S           equivalent to -p hyph-de-ch-1901.pat.txt
