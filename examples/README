@@ -1,25 +1,62 @@
 # Installation
 
-To run the texlua and LuaLaTeX examples, some files from the repository
-need to be copied to a local TEXMF tree:
+## Lua
 
-    lua-classes/cls_pdnm_*.lua  =>  TEXMFHOME/scripts/padrinoma/
-    lua-modules/pdnm_*.lua      =>  TEXMFHOME/scripts/padrinoma/
-    luatex/*.sty                =>  TEXMFHOME/tex/luatex/padrinoma/
+To run any of the Lua examples in directory `examples/lua/` (see file
+`MANIFEST` there), all Lua module and class files
 
-Finally, the TeX distribution's file name database needs to be updated
-by running (with administrator privileges) a command, such as
+    lua-classes/cls_pdnm_*.lua
+    lua-modules/pdnm_*.lua
 
-    mktexlsr
+have to be placed somewhere the Lua interpreter can find them.  Proper
+places can be determined for your Lua interpreter running the following
+command:
 
-After that, you're ready to run the examples.
+    $ lua -e 'print((package.path:gsub(package.config:match(".-\n(.-)\n"), "\n")))'
+
+See variable `package.path` [in the Lua reference
+manual](https://www.lua.org/manual/5.3/manual.html#pdf-package.path) for
+more information.
+
+The _slnunicode_ and _alt-getopt_ modules have to be installed.
+
+When using the _texlua_ interpreter, the _kpathsea_ library is used to
+find `require`d Lua modules.  Lua modules and classes can be copied to a
+directory `scripts/padrinoma/` below your personal TEXMF tree, the
+location of which can be determined running the command
+
+    $ kpsewhich -var-value TEXMFHOME
+
+When placing the files in a shared TEXMF tree instead, such as
+`TEXMFLOCAL`, you have to rebuild the file name database afterwards
+(with adminstrator privileges):
+
+    $ sudo mktexlsr
+
+When the _kpathsea_ library is present in the Lua interpreter, most
+examples accept short language codes for option `-p` when refering to
+hyphenation pattern files installed in a TEXMF tree:
+
+    -p en-gb    # vs.
+    -p /usr/share/texlive/texmf-dist/tex/generic/hyph-utf8/patterns/txt/hyph-en-gb.pat.txt
+
+Run examples with option `-h` for more information.
+
+
+## LuaTeX
+
+Additionally, before running any of the Lua(La)TeX examples in directory
+`examples/luatex`, all files from directory `luatex/` (in the repository
+root) have to be copied to a directory `/tex/luatex/padrinoma/` below
+your TEXMF tree.
+
 
 
 # Updates
 
 If you observe strange errors while running the examples, e.g., after
 pulling from the remote repository, remember to update the files in the
-local TEXMF tree.
+TEXMF tree.
 
 
 
