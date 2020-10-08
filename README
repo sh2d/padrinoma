@@ -23,9 +23,9 @@ Main developer: Stephan Hennig, <sh2d@posteo.net>
 ### Development
 
 The development repository is currently hosted at
-[GitHub](https://github.com/sh2d/padrinoma/).  Bugs and a wish list can
+[Codeberg](https://codeberg.org/sh2d/padrinoma/).  Bugs and a wish list can
 be found in the
-[issue tracker](https://github.com/sh2d/padrinoma/issues/).
+[issue tracker](https://codeberg.org/sh2d/padrinoma/issues/).
 
 For more information see file `README.developer`.
 
