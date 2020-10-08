@@ -2,7 +2,7 @@
 
 --[[
 
-   Copyright 2014 Stephan Hennig
+   Copyright 2014, 2020 Stephan Hennig
 
    This file is part of Padrinoma.
 
@@ -49,7 +49,7 @@
 -- @class module
 -- @name pdnm_node_list_manipulation
 -- @author Stephan Hennig
--- @copyright 2014, Stephan Hennig
+-- @copyright 2014, 2020 Stephan Hennig
 
 -- API-Dokumentation can be generated via <pre>
 --
