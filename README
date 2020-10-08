@@ -1,4 +1,11 @@
-This is the development repository of the padrinoma package for LuaTeX.
+# Warning!
+
+In September 2020, this repository moved to
+[Codeberg](https://codeberg.org/), a Git hoster based in Germany.
+Please head there for more recent information about the [padrinoma
+package](https://codeberg.org/sh2d/padrinoma/).  This repository will
+not be updated anymore and is kept here for documentation purposes only.
+
 If not stated otherwise, the files in this repository are subject to the
 [AGPL v3](https://www.gnu.org/licenses/agpl-3.0-standalone.html)
 license.
